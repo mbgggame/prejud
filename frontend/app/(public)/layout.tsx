@@ -1,8 +1,20 @@
-export default function PublicLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return <>{children}</>;
-}
+import type { Metadata } from 'next'; 
+import './globals.css';
+import { AuthProvider } from '@/contexts/AuthContext';
 
+export const metadata: Metadata = {
+  title: 'PreJud SaaS',
+  description: 'Notificacao extrajudicial', 
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang='pt-BR'>
+      <body>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </body>
+    </html>
+  );
+}
