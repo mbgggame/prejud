@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import React from 'react';
+
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -72,7 +74,7 @@ function BrazilClock() {
 // COMPONENTE PRINCIPAL
 // ==========================================
 
-export default function ClienteDashboardPage(): JSX.Element {
+export default function ClienteDashboardPage(): React.JSX.Element {
   const router = useRouter();
   const { user, logout } = useAuth();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -99,7 +101,7 @@ export default function ClienteDashboardPage(): JSX.Element {
     {
       id: "2",
       tipo: "cobranca",
-      freelancer: "João Silva",
+      freelancer: "Joao Silva",
       servico: "Desenvolvimento de site",
       valor: "R$ 3.500,00",
       status: "pendente_confirmacao",
@@ -110,7 +112,7 @@ export default function ClienteDashboardPage(): JSX.Element {
   const acordosAtivos = [
     {
       id: "3",
-      titulo: "Redação de artigos",
+      titulo: "Redacao de artigos",
       freelancer: "Ana Costa",
       prazo: "30/03/2024",
       status: "confirmado"
@@ -118,9 +120,9 @@ export default function ClienteDashboardPage(): JSX.Element {
   ];
 
   const historico = [
-    { acao: "Você confirmou um acordo", data: "10/03/2024" },
-    { acao: "Você contestou uma cobrança", data: "05/03/2024" },
-    { acao: "Você respondeu uma notificação", data: "01/03/2024" }
+    { acao: "Vocaª confirmou um acordo", data: "10/03/2024" },
+    { acao: "Vocaª contestou uma cobranca", data: "05/03/2024" },
+    { acao: "Vocaª respondeu uma notificacao", data: "01/03/2024" }
   ];
 
   const handleLogout = async () => {
@@ -129,18 +131,18 @@ export default function ClienteDashboardPage(): JSX.Element {
   };
 
   const handleConfirmar = (id: string) => {
-    // TODO: Implementar confirmação
+    // TODO: Implementar confirmacao
     console.log("Confirmar:", id);
   };
 
   const handleContestar = (id: string) => {
-    // TODO: Implementar contestação
+    // TODO: Implementar contestacao
     console.log("Contestar:", id);
   };
 
   const handleNaoReconheco = (id: string) => {
     // TODO: Implementar disputa
-    console.log("Não reconheço:", id);
+    console.log("Nao reconheco:", id);
   };
 
   const getStatusColor = (status: SolicitacaoStatus) => {
@@ -175,7 +177,7 @@ export default function ClienteDashboardPage(): JSX.Element {
               </Link>
               <div>
                 <h1 className="text-lg font-bold text-white">PreJud Cliente</h1>
-                <p className="text-xs text-gray-400">Área do cliente</p>
+                <p className="text-xs text-gray-400">area do cliente</p>
               </div>
             </div>
 
@@ -209,7 +211,7 @@ export default function ClienteDashboardPage(): JSX.Element {
                       </Link>
                       <Link href="/cliente/configuracoes" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5">
                         <Settings size={16} />
-                        Configurações
+                        Configuracoes
                       </Link>
                       <div className="my-1 border-t border-white/10" />
                       <button
@@ -230,7 +232,7 @@ export default function ClienteDashboardPage(): JSX.Element {
 
       {/* MAIN */}
       <main className="pt-24 pb-8 px-4 md:px-8 max-w-7xl mx-auto">
-        {/* CARDS DE ESTATÍSTICAS */}
+        {/* CARDS DE ESTATaSTICAS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
             <div className="flex items-center justify-between mb-3">
@@ -259,7 +261,7 @@ export default function ClienteDashboardPage(): JSX.Element {
               </div>
               <span className="text-2xl font-bold text-white">{stats.cobrancas}</span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Cobranças recebidas</p>
+            <p className="text-gray-400 text-xs md:text-sm">Cobrancas recebidas</p>
           </div>
 
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-5">
@@ -269,13 +271,13 @@ export default function ClienteDashboardPage(): JSX.Element {
               </div>
               <span className="text-2xl font-bold text-white">{stats.notificacoes}</span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Notificações</p>
+            <p className="text-gray-400 text-xs md:text-sm">Notificacoes</p>
           </div>
         </div>
 
-        {/* SEÇÃO 1: SOLICITAÇÕES PENDENTES */}
+        {/* SEa‡aƒO 1: SOLICITAa‡a•ES PENDENTES */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-white mb-4">Solicitações pendentes</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">Solicitacoes pendentes</h2>
           
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden">
             {solicitacoes.map((solicitacao) => (
@@ -287,9 +289,9 @@ export default function ClienteDashboardPage(): JSX.Element {
                     </div>
                     <div>
                       <h3 className="text-white font-medium">
-                        {solicitacao.tipo === "acordo" ? "Acordo aguardando confirmação" : "Cobrança recebida"}
+                        {solicitacao.tipo === "acordo" ? "Acordo aguardando confirmacao" : "Cobranca recebida"}
                       </h3>
-                      <p className="text-sm text-gray-500">{solicitacao.freelancer} • {solicitacao.data}</p>
+                      <p className="text-sm text-gray-500">{solicitacao.freelancer} â€¢ {solicitacao.data}</p>
                     </div>
                   </div>
                   <span className={`px-3 py-1 border text-xs rounded-full ${getStatusColor(solicitacao.status)}`}>
@@ -299,7 +301,7 @@ export default function ClienteDashboardPage(): JSX.Element {
 
                 <div className="grid md:grid-cols-3 gap-4 mb-4 text-sm">
                   <div>
-                    <p className="text-gray-500">Serviço</p>
+                    <p className="text-gray-500">Servico</p>
                     <p className="text-gray-300">{solicitacao.servico}</p>
                   </div>
                   {solicitacao.valor && (
@@ -338,7 +340,7 @@ export default function ClienteDashboardPage(): JSX.Element {
                     className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-all"
                   >
                     <XCircle className="w-4 h-4" />
-                    Não reconheço este acordo
+                    Nao reconheco este acordo
                   </button>
                 </div>
               </div>
@@ -346,7 +348,7 @@ export default function ClienteDashboardPage(): JSX.Element {
           </div>
         </div>
 
-        {/* SEÇÃO 2: ACORDOS ATIVOS */}
+        {/* SEa‡aƒO 2: ACORDOS ATIVOS */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-white mb-4">Acordos ativos</h2>
           
@@ -373,9 +375,9 @@ export default function ClienteDashboardPage(): JSX.Element {
           </div>
         </div>
 
-        {/* SEÇÃO 3: HISTÓRICO RECENTE */}
+        {/* SEa‡aƒO 3: HISTa“RICO RECENTE */}
         <div>
-          <h2 className="text-xl font-semibold text-white mb-4">Histórico recente</h2>
+          <h2 className="text-xl font-semibold text-white mb-4">Historico recente</h2>
           
           <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="space-y-4">
@@ -397,3 +399,4 @@ export default function ClienteDashboardPage(): JSX.Element {
     </div>
   );
 }
+

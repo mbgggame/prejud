@@ -1,4 +1,6 @@
-﻿"use client";
+﻿﻿"use client";
+
+import React from 'react';
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -285,7 +287,7 @@ function MiniTimeline({ events, createdAt }: {
 // ==========================================
 
 function getRecordTypeLabel(type: RecordType): string {
-  const labels: Record<RecordType, string> = {
+  const labels: {[key: string]: string} = {
     acordo: "Acordo",
     contrato: "Contrato",
     cobranca: "Cobrança",
@@ -319,7 +321,7 @@ function getRecordTypeIcon(type: RecordType) {
 }
 
 function getStatusLabel(status: RecordStatus): string {
-  const labels: Record<RecordStatus, string> = {
+  const labels: {[key: string]: string} = {
     rascunho: "Rascunho",
     formalizado: "Formalizado",
     aguardando_resposta: "Aguardando Resposta",
@@ -382,7 +384,7 @@ function getTabColor(tab: TabType): string {
 // COMPONENTE PRINCIPAL
 // ==========================================
 
-export default function DashboardPage(): JSX.Element {
+export default function DashboardPage(): React.JSX.Element | null | null {
   const { user, logout, loading: authLoading } = useAuth();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);

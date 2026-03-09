@@ -1,10 +1,12 @@
 ﻿"use client";
 
+import React from 'react';
+
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Shield, ArrowLeft, Clock } from "lucide-react";
 
-export default function AcordosPage(): JSX.Element {
+export default function AcordosPage(): React.JSX.Element {
   const router = useRouter();
 
   return (
@@ -33,7 +35,7 @@ export default function AcordosPage(): JSX.Element {
             <Clock className="w-8 h-8 text-purple-400" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">Acordos</h1>
-          <p className="text-gray-400 mb-6">Esta página está em desenvolvimento.</p>
+          <p className="text-gray-400 mb-6">Esta pagina esta em desenvolvimento.</p>
           <button
             onClick={() => router.push("/cliente/dashboard")}
             className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all"
@@ -45,3 +47,4 @@ export default function AcordosPage(): JSX.Element {
     </div>
   );
 }
+

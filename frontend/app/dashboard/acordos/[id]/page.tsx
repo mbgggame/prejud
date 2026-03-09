@@ -1,4 +1,6 @@
-﻿"use client";
+﻿﻿"use client";
+
+import React from 'react';
 
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -85,7 +87,7 @@ const mockTimeline: TimelineEvent[] = [
 // PÁGINA PRINCIPAL
 // ==========================================
 
-export default function AcordoDetalhePage(): JSX.Element {
+export default function AcordoDetalhePage(): React.JSX.Element {
   const router = useRouter();
   const params = useParams();
   const [showProrrogacao, setShowProrrogacao] = useState(false);

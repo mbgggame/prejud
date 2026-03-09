@@ -1,5 +1,7 @@
 ﻿"use client";
 
+import React from 'react';
+
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
@@ -51,7 +53,7 @@ interface AgreementFormData {
   cliente_email: string;
   cliente_documento: string;
   
-  // Tipo de serviço
+  // Tipo de servico
   tipo_servico: ServiceType;
   tipo_servico_outro: string;
   
@@ -64,29 +66,29 @@ interface AgreementFormData {
 }
 
 // ==========================================
-// CONFIGURAÇÃO
+// CONFIGURAa‡aƒO
 // ==========================================
 
 const serviceTypes: { value: ServiceType; label: string }[] = [
-  { value: "design_grafico", label: "Design gráfico" },
+  { value: "design_grafico", label: "Design grafico" },
   { value: "web_design", label: "Web design" },
   { value: "desenvolvimento_site", label: "Desenvolvimento de site" },
   { value: "desenvolvimento_sistema", label: "Desenvolvimento de sistema" },
-  { value: "programacao", label: "Programação" },
+  { value: "programacao", label: "Programacao" },
   { value: "social_media", label: "Social media" },
-  { value: "gestao_trafego", label: "Gestão de tráfego" },
+  { value: "gestao_trafego", label: "Gestao de trafego" },
   { value: "marketing_digital", label: "Marketing digital" },
   { value: "copywriting", label: "Copywriting" },
-  { value: "redacao", label: "Redação" },
-  { value: "traducao", label: "Tradução" },
-  { value: "edicao_video", label: "Edição de vídeo" },
+  { value: "redacao", label: "Redacao" },
+  { value: "traducao", label: "Traducao" },
+  { value: "edicao_video", label: "Edicao de video" },
   { value: "motion_design", label: "Motion design" },
   { value: "fotografia", label: "Fotografia" },
-  { value: "ilustracao", label: "Ilustração" },
+  { value: "ilustracao", label: "Ilustracao" },
   { value: "consultoria", label: "Consultoria" },
   { value: "arquitetura", label: "Arquitetura" },
   { value: "engenharia", label: "Engenharia" },
-  { value: "producao_audiovisual", label: "Produção audiovisual" },
+  { value: "producao_audiovisual", label: "Producao audiovisual" },
   { value: "outros", label: "Outros" },
 ];
 
@@ -94,7 +96,7 @@ const serviceTypes: { value: ServiceType; label: string }[] = [
 // COMPONENTE PRINCIPAL
 // ==========================================
 
-export default function FormalizarAcordoPage(): JSX.Element {
+export default function FormalizarAcordoPage(): React.JSX.Element {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -138,7 +140,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
 
     setLoading(true);
 
-    // TODO: Integração com backend
+    // TODO: Integracao com backend
     // const agreementData = {
     //   id: generateId(),
     //   titulo: formData.titulo_acordo,
@@ -158,7 +160,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
     // await saveToFirestore("agreements", agreementData);
     // await sendAgreementConfirmationEmail(formData.cliente_email, agreementData.id);
 
-    // Simulação de delay
+    // Simulacao de delay
     setTimeout(() => {
       setLoading(false);
       router.push("/dashboard");
@@ -198,7 +200,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
 
       {/* MAIN */}
       <main className="pt-24 pb-12 px-4 md:px-8 max-w-4xl mx-auto">
-        {/* HEADER DO FORMULÁRIO */}
+        {/* HEADER DO FORMULaRIO */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
             <FileSignature className="w-3 h-3" />
@@ -208,12 +210,12 @@ export default function FormalizarAcordoPage(): JSX.Element {
             Formalizar acordo com cliente
           </h1>
           <p className="text-gray-400">
-            Preencha os dados do acordo. O cliente receberá um convite para confirmar.
+            Preencha os dados do acordo. O cliente recebera um convite para confirmar.
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SEÇÃO 1: DADOS DO CLIENTE */}
+          {/* SEa‡aƒO 1: DADOS DO CLIENTE */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -221,7 +223,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
               </div>
               <div>
                 <h2 className="text-lg font-semibold text-white">Dados do cliente</h2>
-                <p className="text-sm text-gray-500">Informações da parte contratante</p>
+                <p className="text-sm text-gray-500">Informacoes da parte contratante</p>
               </div>
             </div>
 
@@ -281,14 +283,14 @@ export default function FormalizarAcordoPage(): JSX.Element {
             </div>
           </section>
 
-          {/* SEÇÃO 2: TIPO DE SERVIÇO */}
+          {/* SEa‡aƒO 2: TIPO DE SERVIa‡O */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
                 <Briefcase className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Tipo de serviço</h2>
+                <h2 className="text-lg font-semibold text-white">Tipo de servico</h2>
                 <p className="text-sm text-gray-500">Categoria do trabalho</p>
               </div>
             </div>
@@ -296,7 +298,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Selecione o serviço <span className="text-red-400">*</span>
+                  Selecione o servico <span className="text-red-400">*</span>
                 </label>
                 <select
                   name="tipo_servico"
@@ -316,14 +318,14 @@ export default function FormalizarAcordoPage(): JSX.Element {
               {showOtherService && (
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Especificar serviço <span className="text-red-400">*</span>
+                    Especificar servico <span className="text-red-400">*</span>
                   </label>
                   <input
                     type="text"
                     name="tipo_servico_outro"
                     value={formData.tipo_servico_outro}
                     onChange={handleInputChange}
-                    placeholder="Descreva o tipo de serviço"
+                    placeholder="Descreva o tipo de servico"
                     className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
                     required={showOtherService}
                   />
@@ -332,7 +334,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
             </div>
           </section>
 
-          {/* SEÇÃO 3: DADOS DO ACORDO */}
+          {/* SEa‡aƒO 3: DADOS DO ACORDO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
@@ -347,7 +349,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
             <div className="space-y-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Título do acordo <span className="text-red-400">*</span>
+                  Titulo do acordo <span className="text-red-400">*</span>
                 </label>
                 <input
                   type="text"
@@ -362,14 +364,14 @@ export default function FormalizarAcordoPage(): JSX.Element {
 
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Descrição do serviço <span className="text-red-400">*</span>
+                  Descricao do servico <span className="text-red-400">*</span>
                 </label>
                 <textarea
                   name="descricao_servico"
                   value={formData.descricao_servico}
                   onChange={handleInputChange}
                   rows={3}
-                  placeholder="Descreva o que será entregue"
+                  placeholder="Descreva o que sera entregue"
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all resize-none"
                   required
                 />
@@ -419,7 +421,7 @@ export default function FormalizarAcordoPage(): JSX.Element {
                   value={formData.termos_do_acordo}
                   onChange={handleInputChange}
                   rows={6}
-                  placeholder="Descreva detalhadamente: entregáveis, número de revisões, condições de pagamento, direitos autorais, confidencialidade, etc."
+                  placeholder="Descreva detalhadamente: entregaveis, numero de revisoes, condicoes de pagamento, direitos autorais, confidencialidade, etc."
                   className="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all resize-none"
                   required
                 />
@@ -427,15 +429,15 @@ export default function FormalizarAcordoPage(): JSX.Element {
             </div>
           </section>
 
-          {/* SEÇÃO 4: FORMALIZAÇÃO */}
+          {/* SEa‡aƒO 4: FORMALIZAa‡aƒO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
                 <FileSignature className="w-5 h-5 text-purple-400" />
               </div>
               <div>
-                <h2 className="text-lg font-semibold text-white">Formalização</h2>
-                <p className="text-sm text-gray-500">Confirmação e envio</p>
+                <h2 className="text-lg font-semibold text-white">Formalizacao</h2>
+                <p className="text-sm text-gray-500">Confirmacao e envio</p>
               </div>
             </div>
 
@@ -444,16 +446,16 @@ export default function FormalizarAcordoPage(): JSX.Element {
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="text-sm font-medium text-blue-400 mb-1">Fluxo de confirmação</h4>
+                  <h4 className="text-sm font-medium text-blue-400 mb-1">Fluxo de confirmacao</h4>
                   <p className="text-sm text-gray-400">
-                    Um convite de confirmação será enviado ao cliente para validar este acordo. 
-                    O acordo só terá validade após a confirmação do cliente.
+                    Um convite de confirmacao sera enviado ao cliente para validar este acordo. 
+                    O acordo so tera validade apos a confirmacao do cliente.
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* BOTÃO */}
+            {/* BOTaƒO */}
             <button
               type="submit"
               disabled={loading || !validateForm()}
@@ -477,3 +479,4 @@ export default function FormalizarAcordoPage(): JSX.Element {
     </div>
   );
 }
+
