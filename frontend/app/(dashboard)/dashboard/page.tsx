@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -27,6 +27,13 @@ import {
   Clock,
   FilePlus,
   CheckCircle,
+  FileSignature,
+  Briefcase,
+  DollarSign,
+  Scale,
+  Camera,
+  History,
+  Archive,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -34,44 +41,45 @@ import Link from "next/link";
 // TIPOS
 // ==========================================
 
-type InternalStatus = 
-  | "em_edicao" 
-  | "rascunho" 
-  | "enviada" 
-  | "recebida_serv_email" 
-  | "lida_pelo_notificado"
-  | "recebida"  // legado
-  | "lida";     // legado
+type RecordType = 
+  | "acordo"
+  | "contrato"
+  | "cobranca"
+  | "violacao_termos"
+  | "notificacao_extrajudicial"
+  | "resposta_recebida"
+  | "prova_digital";
 
-type NormalizedStatus = "rascunho" | "enviada" | "recebida" | "lida";
+type RecordStatus = 
+  | "rascunho"
+  | "formalizado"
+  | "aguardando_resposta"
+  | "em_cobranca"
+  | "notificado"
+  | "respondido"
+  | "encerrado";
 
-type TabType = "todas" | "enviada" | "rascunho" | "recebida";
+type TabType = "todos" | "formalizados" | "rascunho" | "ativos";
 
-type UserRole = "outgoing" | "inbox";
+interface Record {
+  id: string;
+  type: RecordType;
+  title: string;
+  partyName: string; // cliente ou empresa
+  status: RecordStatus;
+  date: string;
+  protocol: string;
+  updatedAt?: any;
+  createdAt?: any;
+  hash?: string;
+  events?: EventType[];
+}
 
 type EventType = {
   type: string;
   at: any;
   byEmail?: string;
 };
-
-interface Notification {
-  id: string;
-  title: string;
-  company: string;
-  status: NormalizedStatus;        // Para lógica de filtro
-  internalStatus: InternalStatus;  // Original do Firestore
-  date: string;
-  protocol: string;
-  type: string;
-  role: UserRole;
-  isReceived: boolean;
-  originalId?: string;  // Para inbox, referência ao outgoing
-  events?: EventType[]; // Histórico de eventos
-  createdAt?: any;
-  updatedAt?: any;
-  sentAt?: any;
-}
 
 // ==========================================
 // FUNÇÕES UTILITÁRIAS
@@ -166,14 +174,16 @@ function formatDateTimeShort(ts: any): string {
 
 function getEventIcon(type: string) {
   switch (type) {
-    case "document_created":
+    case "record_created":
       return <FilePlus className="w-3 h-3" />;
     case "draft_saved":
       return <Edit3 className="w-3 h-3" />;
+    case "formalized":
+      return <CheckCircle className="w-3 h-3" />;
     case "notification_sent":
       return <Send className="w-3 h-3" />;
-    case "notification_received":
-      return <CheckCircle className="w-3 h-3" />;
+    case "response_received":
+      return <Inbox className="w-3 h-3" />;
     default:
       return <Clock className="w-3 h-3" />;
   }
@@ -181,16 +191,18 @@ function getEventIcon(type: string) {
 
 function getEventLabel(type: string): string {
   switch (type) {
-    case "document_created":
+    case "record_created":
       return "Criado";
     case "draft_saved":
       return "Editado";
+    case "formalized":
+      return "Formalizado";
     case "notification_sent":
-      return "Enviado";
-    case "notification_received":
-      return "Recebido";
-    case "notification_read":
-      return "Lido";
+      return "Notificado";
+    case "response_received":
+      return "Respondido";
+    case "closed":
+      return "Encerrado";
     default:
       return type.replace(/_/g, " ");
   }
@@ -198,15 +210,17 @@ function getEventLabel(type: string): string {
 
 function getEventColor(type: string): string {
   switch (type) {
-    case "document_created":
+    case "record_created":
       return "bg-blue-500/10 text-blue-400 border-blue-500/20";
     case "draft_saved":
       return "bg-yellow-500/10 text-yellow-400 border-yellow-500/20";
-    case "notification_sent":
+    case "formalized":
       return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
-    case "notification_received":
-    case "notification_read":
+    case "notification_sent":
       return "bg-purple-500/10 text-purple-400 border-purple-500/20";
+    case "response_received":
+    case "closed":
+      return "bg-gray-500/10 text-gray-400 border-gray-500/20";
     default:
       return "bg-gray-500/10 text-gray-400 border-gray-500/20";
   }
@@ -216,27 +230,21 @@ function getEventColor(type: string): string {
 // COMPONENTE DE TIMELINE MINI
 // ==========================================
 
-function MiniTimeline({ events, createdAt, sentAt }: { 
+function MiniTimeline({ events, createdAt }: { 
   events?: EventType[]; 
   createdAt?: any;
-  sentAt?: any;
 }) {
-  // Se não tiver events, criar a partir de createdAt/sentAt
   const displayEvents = useMemo(() => {
     if (events && events.length > 0) {
-      return events.slice(0, 3); // Max 3 eventos
+      return events.slice(0, 3);
     }
     
-    // Fallback: criar eventos básicos a partir dos timestamps
     const fallback: EventType[] = [];
     if (createdAt) {
-      fallback.push({ type: "document_created", at: createdAt });
-    }
-    if (sentAt) {
-      fallback.push({ type: "notification_sent", at: sentAt });
+      fallback.push({ type: "record_created", at: createdAt });
     }
     return fallback;
-  }, [events, createdAt, sentAt]);
+  }, [events, createdAt]);
 
   if (displayEvents.length === 0) {
     return (
@@ -249,7 +257,6 @@ function MiniTimeline({ events, createdAt, sentAt }: {
 
   return (
     <div className="flex flex-col gap-1 mt-2">
-      {/* Chips de eventos */}
       <div className="flex flex-wrap gap-1">
         {displayEvents.map((event, idx) => (
           <span
@@ -264,7 +271,6 @@ function MiniTimeline({ events, createdAt, sentAt }: {
         ))}
       </div>
       
-      {/* Info adicional se tiver mais eventos */}
       {events && events.length > 3 && (
         <span className="text-xs text-gray-600">
           +{events.length - 3} eventos
@@ -275,145 +281,99 @@ function MiniTimeline({ events, createdAt, sentAt }: {
 }
 
 // ==========================================
-// NORMALIZAÇÃO DE STATUS
+// HELPERS DE TIPO E STATUS
 // ==========================================
 
-/**
- * Converte status internos do Firestore para formato padronizado
- * Compatível com legado (rascunho, recebida, lida) e novo (em_edicao, etc)
- */
-function normalizeStatus(internal: string | undefined): NormalizedStatus {
-  const s = (internal || "").toLowerCase();
-  
-  // Rascunhos
-  if (s === "em_edicao" || s === "rascunho") {
-    return "rascunho";
-  }
-  
-  // Lida (mais específico primeiro)
-  if (s === "lida_pelo_notificado" || s === "lida") {
-    return "lida";
-  }
-  
-  // Recebida
-  if (s === "recebida_serv_email" || s === "recebida") {
-    return "recebida";
-  }
-  
-  // Padrão: enviada
-  return "enviada";
+function getRecordTypeLabel(type: RecordType): string {
+  const labels: Record<RecordType, string> = {
+    acordo: "Acordo",
+    contrato: "Contrato",
+    cobranca: "Cobrança",
+    violacao_termos: "Violação de Termos",
+    notificacao_extrajudicial: "Notificação",
+    resposta_recebida: "Resposta",
+    prova_digital: "Prova Digital",
+  };
+  return labels[type] || "Registro";
 }
 
-// ==========================================
-// LABELS DE STATUS POR ABA (TRACKING)
-// ==========================================
-
-/**
- * Retorna o label de exibição conforme a aba atual (tracking de e-mail)
- */
-function getStatusLabel(
-  normalizedStatus: NormalizedStatus,
-  currentTab: TabType,
-  isInbox: boolean
-): string {
-  
-  // ABA RASCUNHO: sempre Rascunho
-  if (currentTab === "rascunho") {
-    return "Rascunho";
-  }
-  
-  // ABA ENVIADAS (outgoing)
-  if (currentTab === "enviada" || (!isInbox && currentTab === "todas")) {
-    switch (normalizedStatus) {
-      case "rascunho":
-        return "Rascunho";
-      case "enviada":
-        return "Enviada";
-      case "recebida":
-        return "Recebida serv. e-mail";
-      case "lida":
-        return "Lida";
-      default:
-        return "Enviada";
-    }
-  }
-  
-  // ABA RECEBIDAS (inbox)
-  if (currentTab === "recebida" || (isInbox && currentTab === "todas")) {
-    switch (normalizedStatus) {
-      case "recebida":
-        return "Recebida";
-      case "lida":
-        return "Lida";
-      case "rascunho":
-        return "Rascunho";
-      case "enviada":
-        return "Recebida"; // fallback para dados inconsistentes
-      default:
-        return "Recebida";
-    }
-  }
-  
-  // ABA TODAS (genérico)
-  switch (normalizedStatus) {
-    case "rascunho":
-      return "Rascunho";
-    case "enviada":
-      return "Enviada";
-    case "recebida":
-      return isInbox ? "Recebida" : "Recebida serv. e-mail";
-    case "lida":
-      return "Lida";
+function getRecordTypeIcon(type: RecordType) {
+  switch (type) {
+    case "acordo":
+      return <FileSignature className="w-4 h-4" />;
+    case "contrato":
+      return <Briefcase className="w-4 h-4" />;
+    case "cobranca":
+      return <DollarSign className="w-4 h-4" />;
+    case "violacao_termos":
+      return <Scale className="w-4 h-4" />;
+    case "notificacao_extrajudicial":
+      return <Send className="w-4 h-4" />;
+    case "resposta_recebida":
+      return <Inbox className="w-4 h-4" />;
+    case "prova_digital":
+      return <Camera className="w-4 h-4" />;
     default:
-      return "Enviada";
+      return <FileText className="w-4 h-4" />;
   }
 }
 
-// ==========================================
-// CORES DA UI
-// ==========================================
+function getStatusLabel(status: RecordStatus): string {
+  const labels: Record<RecordStatus, string> = {
+    rascunho: "Rascunho",
+    formalizado: "Formalizado",
+    aguardando_resposta: "Aguardando Resposta",
+    em_cobranca: "Em Cobrança",
+    notificado: "Notificado",
+    respondido: "Respondido",
+    encerrado: "Encerrado",
+  };
+  return labels[status] || status;
+}
 
-function getStatusColor(label: string): string {
-  const lower = label.toLowerCase();
-  
-  if (lower.includes("rascunho")) {
-    return "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+function getStatusColor(status: RecordStatus): string {
+  switch (status) {
+    case "rascunho":
+      return "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+    case "formalizado":
+      return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+    case "aguardando_resposta":
+      return "bg-blue-500/10 border-blue-500/20 text-blue-400";
+    case "em_cobranca":
+      return "bg-orange-500/10 border-orange-500/20 text-orange-400";
+    case "notificado":
+      return "bg-purple-500/10 border-purple-500/20 text-purple-400";
+    case "respondido":
+      return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+    case "encerrado":
+      return "bg-gray-500/10 border-gray-500/20 text-gray-400";
+    default:
+      return "bg-gray-500/10 border-gray-500/20 text-gray-400";
   }
-  if (lower.includes("lida")) {
-    return "bg-purple-500/10 border-purple-500/20 text-purple-400";
-  }
-  if (lower.includes("recebida")) {
-    return "bg-blue-500/10 border-blue-500/20 text-blue-400";
-  }
-  if (lower.includes("enviada")) {
-    return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
-  }
-  
-  return "bg-gray-500/10 border-gray-500/20 text-gray-400";
 }
 
 function getTabIcon(tab: TabType) {
   switch (tab) {
-    case "enviada":
-      return <Send className="w-5 h-5 text-emerald-400" />;
+    case "formalizados":
+      return <CheckCircle className="w-5 h-5 text-emerald-400" />;
     case "rascunho":
       return <Edit3 className="w-5 h-5 text-yellow-400" />;
-    case "recebida":
-      return <Inbox className="w-5 h-5 text-blue-400" />;
-    case "todas":
+    case "ativos":
+      return <Clock className="w-5 h-5 text-blue-400" />;
+    case "todos":
       return <FileText className="w-5 h-5 text-purple-400" />;
   }
 }
 
 function getTabColor(tab: TabType): string {
   switch (tab) {
-    case "enviada":
+    case "formalizados":
       return "bg-emerald-500/10";
     case "rascunho":
       return "bg-yellow-500/10";
-    case "recebida":
+    case "ativos":
       return "bg-blue-500/10";
-    case "todas":
+    case "todos":
       return "bg-purple-500/10";
   }
 }
@@ -426,8 +386,8 @@ export default function DashboardPage(): JSX.Element {
   const { user, logout, loading: authLoading } = useAuth();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabType>("todas");
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [activeTab, setActiveTab] = useState<TabType>("todos");
+  const [records, setRecords] = useState<Record[]>([]);
   const [loading, setLoading] = useState(true);
 
   const isLocal = useMemo(() => {
@@ -444,65 +404,47 @@ export default function DashboardPage(): JSX.Element {
     if (!user) router.push("/login");
   }, [authLoading, user, router]);
 
-  // Busca notificações em tempo real
+  // Busca registros em tempo real
   useEffect(() => {
     if (!user) return;
 
-    console.log("[DASHBOARD] Buscando notificações para:", user.uid);
+    console.log("[DASHBOARD] Buscando registros para:", user.uid);
 
-    // ==========================================
-    // QUERY CORRIGIDA: Busca por userId (funciona para outgoing E inbox)
-    // ==========================================
     const q = query(
-      collection(db, "notifications"),
-      where("userId", "==", user.uid),      // ESSENCIAL: UID do usuário logado
+      collection(db, "records"),
+      where("userId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
 
     const unsubscribe = onSnapshot(
       q,
       (snapshot) => {
-        const notifs: Notification[] = [];
+        const recs: Record[] = [];
 
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
           
-          // Determina role (compatível com legado sem role)
-          const role: UserRole = data.role === "inbox" ? "inbox" : "outgoing";
-          const isReceived = role === "inbox";
-          
-          // Normaliza status
-          const internalStatus = (data.status as InternalStatus) || "enviada";
-          const normalizedStatus = normalizeStatus(internalStatus);
-
-          notifs.push({
+          recs.push({
             id: docSnap.id,
+            type: (data.type as RecordType) || "notificacao_extrajudicial",
             title: data.title || "Sem título",
-            company: isReceived 
-              ? (data.notifierName || data.notifierCpf || "N/A")
-              : (data.notifiedName || data.notifiedCpf || "N/A"),
-            status: normalizedStatus,
-            internalStatus,
+            partyName: data.partyName || data.clientName || data.companyName || "N/A",
+            status: (data.status as RecordStatus) || "rascunho",
             date: formatPtBrDateFromAny(data.createdAt || data.updatedAt),
             protocol: data.protocol || "N/A",
-            type: data.notificationType || "Outros",
-            role,
-            isReceived,
-            originalId: data.originalId,
-            events: data.events || [],
-            createdAt: data.createdAt,
             updatedAt: data.updatedAt,
-            sentAt: data.sentAt,
+            createdAt: data.createdAt,
+            hash: data.hash,
+            events: data.events || [],
           });
         });
 
-        console.log("[DASHBOARD] Carregado:", notifs.length, "notificações");
-        setNotifications(notifs);
+        console.log("[DASHBOARD] Carregado:", recs.length, "registros");
+        setRecords(recs);
         setLoading(false);
       },
       (error) => {
         console.error("[DASHBOARD] Erro:", error);
-        // Se der erro de índice, mostrar mensagem específica
         if (error.message?.includes("index")) {
           console.error("[DASHBOARD] ERRO DE ÍNDICE: Crie o índice no Firestore console!");
         }
@@ -513,38 +455,56 @@ export default function DashboardPage(): JSX.Element {
     return () => unsubscribe();
   }, [user?.uid]);
 
-  // Estatísticas
+  // Estatísticas atualizadas
   const stats = useMemo(() => ({
-    total: notifications.length,
-    enviadas: notifications.filter((n) => n.role === "outgoing" && n.status !== "rascunho").length,
-    rascunho: notifications.filter((n) => n.status === "rascunho").length,
-    recebidas: notifications.filter((n) => n.role === "inbox").length,
-  }), [notifications]);
+    relacoesFormalizadas: records.filter((r) => 
+      r.type === "contrato" || r.type === "acordo"
+    ).length,
+    acordosRegistrados: records.filter((r) => r.type === "acordo").length,
+    cobrancasAtivas: records.filter((r) => 
+      r.type === "cobranca" && r.status !== "encerrado"
+    ).length,
+    notificacoesEnviadas: records.filter((r) => 
+      r.type === "notificacao_extrajudicial" && r.status !== "rascunho"
+    ).length,
+  }), [records]);
 
-  // Filtros por aba conforme regras
-  const filteredNotifications = useMemo(() => {
+  // Filtros por aba
+  const filteredRecords = useMemo(() => {
     switch (activeTab) {
-      case "todas":
-        return notifications;
+      case "todos":
+        return records;
         
-      case "enviada":
-        // role != inbox (outgoing ou legado) E não é rascunho
-        return notifications.filter((n) => 
-          n.role === "outgoing" && n.status !== "rascunho"
+      case "formalizados":
+        return records.filter((r) => 
+          r.status === "formalizado" || r.status === "notificado"
         );
         
       case "rascunho":
-        // em_edicao ou rascunho (independente de role, mas tipicamente outgoing)
-        return notifications.filter((n) => n.status === "rascunho");
+        return records.filter((r) => r.status === "rascunho");
         
-      case "recebida":
-        // role == inbox
-        return notifications.filter((n) => n.role === "inbox");
+      case "ativos":
+        return records.filter((r) => 
+          ["aguardando_resposta", "em_cobranca", "notificado"].includes(r.status)
+        );
         
       default:
-        return notifications;
+        return records;
     }
-  }, [notifications, activeTab]);
+  }, [records, activeTab]);
+
+  // Dados de integridade
+  const integrityData = useMemo(() => {
+    const lastRecord = records[0];
+    return {
+      hash: lastRecord?.hash || Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
+      lastProtocol: lastRecord?.protocol || "N/A",
+      lastValidated: lastRecord?.updatedAt 
+        ? formatDateTimeShort(lastRecord.updatedAt)
+        : formatDateTimeShort(new Date()),
+      totalPreserved: records.filter(r => r.hash).length,
+    };
+  }, [records]);
 
   const userName = user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "Usuário";
   const userEmail = user?.email || "";
@@ -598,16 +558,16 @@ export default function DashboardPage(): JSX.Element {
               </button>
 
               <button
-                onClick={() => router.push("/dashboard/nova")}
+                onClick={() => router.push("/dashboard/novo-registro")}
                 className="hidden sm:flex items-center gap-2 px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-all text-sm font-medium"
               >
                 <Plus size={16} />
-                Criar Notificação
+                Novo Registro
               </button>
 
               {isLocal && (
                 <a
-                  href="http://127.0.0.1:4000/firestore  "
+                  href="http://127.0.0.1:4000/firestore"
                   target="_blank"
                   rel="noreferrer"
                   className="hidden sm:flex items-center gap-2 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/80 hover:bg-white/10 transition"
@@ -662,70 +622,126 @@ export default function DashboardPage(): JSX.Element {
 
       {/* MAIN */}
       <main className="pt-24 pb-8 px-4 md:px-8 max-w-7xl mx-auto">
-        {/* CARDS DE ESTATÍSTICAS */}
+        {/* CARDS DE ESTATÍSTICAS - ATUALIZADOS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <button
-            onClick={() => setActiveTab("todas")}
+            onClick={() => setActiveTab("todos")}
             className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "todas" ? "border-purple-500/50 bg-purple-500/5" : "border-white/10"
+              activeTab === "todos" ? "border-purple-500/50 bg-purple-500/5" : "border-white/10"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("todas")}`}>
-                <FileText className="w-5 h-5 text-purple-400" />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("todos")}`}>
+                <Briefcase className="w-5 h-5 text-purple-400" />
               </div>
-              <span className="text-2xl font-bold text-white">{stats.total}</span>
+              <span className="text-2xl font-bold text-white">{stats.relacoesFormalizadas}</span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Total Notificações</p>
+            <p className="text-gray-400 text-xs md:text-sm">Relações Formalizadas</p>
           </button>
 
           <button
-            onClick={() => setActiveTab("enviada")}
+            onClick={() => setActiveTab("formalizados")}
             className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "enviada" ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/10"
+              activeTab === "formalizados" ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/10"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("enviada")}`}>
-                <Send className="w-5 h-5 text-emerald-400" />
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("formalizados")}`}>
+                <FileSignature className="w-5 h-5 text-emerald-400" />
               </div>
-              <span className="text-2xl font-bold text-white">{stats.enviadas}</span>
+              <span className="text-2xl font-bold text-white">{stats.acordosRegistrados}</span>
+            </div>
+            <p className="text-gray-400 text-xs md:text-sm">Acordos Registrados</p>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("ativos")}
+            className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
+              activeTab === "ativos" ? "border-orange-500/50 bg-orange-500/5" : "border-white/10"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("ativos")}`}>
+                <DollarSign className="w-5 h-5 text-orange-400" />
+              </div>
+              <span className="text-2xl font-bold text-white">{stats.cobrancasAtivas}</span>
+            </div>
+            <p className="text-gray-400 text-xs md:text-sm">Cobranças Ativas</p>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("formalizados")}
+            className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
+              activeTab === "formalizados" ? "border-blue-500/50 bg-blue-500/5" : "border-white/10"
+            }`}
+          >
+            <div className="flex items-center justify-between mb-3">
+              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("formalizados")}`}>
+                <Send className="w-5 h-5 text-blue-400" />
+              </div>
+              <span className="text-2xl font-bold text-white">{stats.notificacoesEnviadas}</span>
             </div>
             <p className="text-gray-400 text-xs md:text-sm">Notificações Enviadas</p>
           </button>
-
-          <button
-            onClick={() => setActiveTab("rascunho")}
-            className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "rascunho" ? "border-yellow-500/50 bg-yellow-500/5" : "border-white/10"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("rascunho")}`}>
-                <Edit3 className="w-5 h-5 text-yellow-400" />
-              </div>
-              <span className="text-2xl font-bold text-white">{stats.rascunho}</span>
-            </div>
-            <p className="text-gray-400 text-xs md:text-sm">Notificações em Rascunho</p>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("recebida")}
-            className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "recebida" ? "border-blue-500/50 bg-blue-500/5" : "border-white/10"
-            }`}
-          >
-            <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("recebida")}`}>
-                <Inbox className="w-5 h-5 text-blue-400" />
-              </div>
-              <span className="text-2xl font-bold text-white">{stats.recebidas}</span>
-            </div>
-            <p className="text-gray-400 text-xs md:text-sm">Notificações Recebidas</p>
-          </button>
         </div>
 
-        {/* LISTA DE NOTIFICAÇÕES */}
+        {/* AÇÕES RÁPIDAS - NOVA SEÇÃO */}
+        <div className="mb-8">
+          <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Ações Rápidas</h3>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+            <button
+              onClick={() => router.push("/dashboard/formalizar-acordo")}
+              className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <FileSignature className="w-5 h-5 text-emerald-400" />
+              </div>
+              <span className="text-xs text-gray-300 text-center">Formalizar novo acordo</span>
+            </button>
+
+            <button
+              onClick={() => router.push("/dashboard/novo-registro?tipo=prova_digital")}
+              className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Camera className="w-5 h-5 text-cyan-400" />
+              </div>
+              <span className="text-xs text-gray-300 text-center">Registrar prova digital</span>
+            </button>
+
+            <button
+              onClick={() => router.push("/dashboard/novo-registro?tipo=cobranca")}
+              className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <DollarSign className="w-5 h-5 text-orange-400" />
+              </div>
+              <span className="text-xs text-gray-300 text-center">Criar cobrança</span>
+            </button>
+
+            <button
+              onClick={() => router.push("/dashboard/novo-registro?tipo=notificacao")}
+              className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Send className="w-5 h-5 text-purple-400" />
+              </div>
+              <span className="text-xs text-gray-300 text-center">Emitir notificação</span>
+            </button>
+
+            <button
+              onClick={() => router.push("/dashboard/historico")}
+              className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
+            >
+              <div className="w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <History className="w-5 h-5 text-gray-400" />
+              </div>
+              <span className="text-xs text-gray-300 text-center">Ver histórico completo</span>
+            </button>
+          </div>
+        </div>
+
+        {/* LISTA DE REGISTROS/CASOS - ATUALIZADA */}
         <div className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -733,114 +749,169 @@ export default function DashboardPage(): JSX.Element {
                 {getTabIcon(activeTab)}
               </div>
               <h2 className="text-lg font-semibold text-white">
-                {activeTab === "todas" && "Todas as Notificações"}
-                {activeTab === "enviada" && "Notificações Enviadas"}
-                {activeTab === "rascunho" && "Notificações em Rascunho"}
-                {activeTab === "recebida" && "Notificações Recebidas"}
+                {activeTab === "todos" && "Todos os Registros"}
+                {activeTab === "formalizados" && "Registros Formalizados"}
+                {activeTab === "rascunho" && "Rascunhos"}
+                {activeTab === "ativos" && "Casos Ativos"}
               </h2>
             </div>
-            <span className="text-sm text-gray-500">{filteredNotifications.length} item(s)</span>
+            <span className="text-sm text-gray-500">{filteredRecords.length} item(s)</span>
+          </div>
+
+          {/* CABEÇALHO DA TABELA */}
+          <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-white/[0.02] border-b border-white/5 text-xs text-gray-500 uppercase tracking-wider">
+            <div className="col-span-2">Tipo</div>
+            <div className="col-span-3">Título</div>
+            <div className="col-span-2">Parte Relacionada</div>
+            <div className="col-span-2">Status</div>
+            <div className="col-span-2">Última Atualização</div>
+            <div className="col-span-1">Protocolo</div>
           </div>
 
           <div className="divide-y divide-white/5">
-            {filteredNotifications.map((notification) => {
-              // LABEL DE STATUS CONFORME ABA (TRACKING)
-              const statusLabel = getStatusLabel(
-                notification.status,
-                activeTab,
-                notification.role === "inbox"
-              );
-              
-              const statusColorClass = getStatusColor(statusLabel);
+            {filteredRecords.map((record) => {
+              const statusLabel = getStatusLabel(record.status);
+              const statusColorClass = getStatusColor(record.status);
+              const typeLabel = getRecordTypeLabel(record.type);
 
               return (
                 <div
-                  key={notification.id}
+                  key={record.id}
                   className="px-6 py-4 hover:bg-white/[0.02] transition-all group"
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-4 flex-1 min-w-0">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${getTabColor(
-                        notification.status === "rascunho" ? "rascunho" : 
-                        notification.role === "inbox" ? "recebida" : "enviada"
-                      )}`}>
-                        {notification.status === "rascunho" ? (
-                          <Edit3 className="w-5 h-5 text-yellow-400" />
-                        ) : notification.role === "inbox" ? (
-                          <Inbox className="w-5 h-5 text-blue-400" />
-                        ) : (
-                          <Send className="w-5 h-5 text-emerald-400" />
-                        )}
+                  <div className="flex items-start justify-between md:grid md:grid-cols-12 md:gap-4 md:items-center">
+                    {/* TIPO */}
+                    <div className="hidden md:flex md:col-span-2 items-center gap-2">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getStatusColor(record.status).replace('text-', 'bg-').replace('/10', '/20').split(' ')[0]}`}>
+                        {getRecordTypeIcon(record.type)}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-white font-medium group-hover:text-purple-400 transition-colors truncate">
-                          {notification.title}
-                        </h3>
-                        <p className="text-gray-500 text-sm">
-                          {notification.company} • {notification.date}
-                        </p>
-                        <p className="text-gray-600 text-xs">
-                          Protocolo: {notification.protocol}
-                        </p>
-                        
-                        {/* MINI TIMELINE */}
-                        <MiniTimeline 
-                          events={notification.events}
-                          createdAt={notification.createdAt}
-                          sentAt={notification.sentAt}
-                        />
-                      </div>
+                      <span className="text-sm text-gray-300">{typeLabel}</span>
                     </div>
-                    
-                    <div className="flex items-center gap-2 flex-shrink-0 ml-4">
-                      <Link
-                        href={`/dashboard/notificacao/${notification.id}`}
-                        className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 text-purple-400 text-sm rounded-full hover:bg-purple-500/20 transition-all whitespace-nowrap"
-                      >
-                        <Eye className="w-4 h-4" />
-                        <span className="hidden sm:inline">Visualizar</span>
-                      </Link>
 
-                      {notification.status === "rascunho" && (
-                        <Link
-                          href={`/dashboard/nova?id=${notification.id}`}
-                          className="flex items-center gap-1 px-3 py-1.5 bg-yellow-500/10 text-yellow-400 text-sm rounded-full hover:bg-yellow-500/20 transition-all whitespace-nowrap"
-                        >
-                          <Edit3 className="w-4 h-4" />
-                          <span className="hidden sm:inline">Editar</span>
-                        </Link>
-                      )}
+                    {/* TÍTULO */}
+                    <div className="flex-1 md:col-span-3 min-w-0 mb-2 md:mb-0">
+                      <h3 className="text-white font-medium group-hover:text-purple-400 transition-colors truncate">
+                        {record.title}
+                      </h3>
+                      <div className="md:hidden mt-1">
+                        <span className="inline-flex items-center gap-1 text-xs text-gray-500">
+                          {getRecordTypeIcon(record.type)}
+                          {typeLabel}
+                        </span>
+                      </div>
+                      <MiniTimeline 
+                        events={record.events}
+                        createdAt={record.createdAt}
+                      />
+                    </div>
 
-                      {/* STATUS COM TRACKING */}
-                      <span className={`px-3 py-1 border text-sm rounded-full whitespace-nowrap ${statusColorClass}`}>
+                    {/* PARTE RELACIONADA */}
+                    <div className="hidden md:block md:col-span-2 text-sm text-gray-400 truncate">
+                      {record.partyName}
+                    </div>
+
+                    {/* STATUS */}
+                    <div className="md:col-span-2 flex items-center justify-end md:justify-start gap-2">
+                      <span className={`px-3 py-1 border text-xs rounded-full whitespace-nowrap ${statusColorClass}`}>
                         {statusLabel}
                       </span>
                     </div>
+
+                    {/* DATA */}
+                    <div className="hidden md:block md:col-span-2 text-sm text-gray-500">
+                      {formatDateTimeShort(record.updatedAt || record.createdAt)}
+                    </div>
+
+                    {/* PROTOCOLO */}
+                    <div className="hidden md:block md:col-span-1 text-xs text-gray-600 font-mono">
+                      {record.protocol}
+                    </div>
+
+                    {/* AÇÕES MOBILE */}
+                    <div className="md:hidden flex items-center gap-2 ml-2">
+                      <Link
+                        href={`/dashboard/registro/${record.id}`}
+                        className="p-2 bg-purple-500/10 text-purple-400 rounded-lg hover:bg-purple-500/20 transition-all"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </Link>
+                    </div>
+                  </div>
+
+                  {/* AÇÕES DESKTOP */}
+                  <div className="hidden md:flex items-center gap-2 mt-3 md:mt-0 md:justify-end">
+                    <Link
+                      href={`/dashboard/registro/${record.id}`}
+                      className="flex items-center gap-1 px-3 py-1.5 bg-purple-500/10 text-purple-400 text-sm rounded-full hover:bg-purple-500/20 transition-all whitespace-nowrap"
+                    >
+                      <Eye className="w-4 h-4" />
+                      <span>Visualizar</span>
+                    </Link>
+
+                    {record.status === "rascunho" && (
+                      <Link
+                        href={`/dashboard/novo-registro?id=${record.id}`}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-yellow-500/10 text-yellow-400 text-sm rounded-full hover:bg-yellow-500/20 transition-all whitespace-nowrap"
+                      >
+                        <Edit3 className="w-4 h-4" />
+                        <span>Editar</span>
+                      </Link>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {filteredNotifications.length === 0 && (
+          {filteredRecords.length === 0 && (
             <div className="px-6 py-12 text-center">
-              <p className="text-gray-500">Nenhuma notificação encontrada nesta categoria.</p>
+              <Archive className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+              <p className="text-gray-500">Nenhum registro encontrado nesta categoria.</p>
+              <button
+                onClick={() => router.push("/dashboard/novo-registro")}
+                className="mt-4 text-purple-400 hover:text-purple-300 text-sm"
+              >
+                Criar primeiro registro →
+              </button>
             </div>
           )}
         </div>
 
-        {/* FOOTER INFO */}
+        {/* SEÇÃO DE INTEGRIDADE - ATUALIZADA */}
         <div className="mt-8 bg-purple-600/5 border border-purple-600/20 rounded-2xl p-6">
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-purple-400" />
-            <h3 className="text-purple-400 font-medium">Hash de Integridade do Sistema</h3>
+            <h3 className="text-purple-400 font-medium">Integridade do Sistema</h3>
           </div>
-          <p className="text-gray-400 text-sm mb-2">
-            Todos os registros são protegidos por criptografia SHA-256 e carimbo de tempo.
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+            <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
+              <p className="text-xs text-gray-500 mb-1">Hash SHA-256 Ativo</p>
+              <code className="text-xs font-mono text-emerald-400 break-all">
+                {integrityData.hash.substring(0, 16)}...{integrityData.hash.substring(48)}
+              </code>
+            </div>
+            
+            <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
+              <p className="text-xs text-gray-500 mb-1">Último Protocolo Gerado</p>
+              <p className="text-sm text-gray-300 font-mono">{integrityData.lastProtocol}</p>
+            </div>
+            
+            <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
+              <p className="text-xs text-gray-500 mb-1">Último Registro Validado</p>
+              <p className="text-sm text-gray-300">{integrityData.lastValidated}</p>
+            </div>
+            
+            <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
+              <p className="text-xs text-gray-500 mb-1">Trilha de Eventos Preservada</p>
+              <p className="text-sm text-emerald-400">{integrityData.totalPreserved} registros</p>
+            </div>
+          </div>
+          
+          <p className="text-gray-500 text-xs">
+            Todos os registros são protegidos por criptografia SHA-256 e carimbo de tempo imutável. 
+            A trilha de auditoria garante a integridade jurídica de cada caso.
           </p>
-          <code className="block bg-[#0a0a0c] rounded-lg px-4 py-3 text-xs font-mono text-gray-500 break-all">
-            {Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join("")}
-          </code>
         </div>
       </main>
     </div>

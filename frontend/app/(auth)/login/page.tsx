@@ -19,7 +19,7 @@ export default function LoginPage() {
 
   const validate = (): string => {
     if (!email.trim()) return "Informe seu e-mail.";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "E-mail invÃ¡lido.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "E-mail inválido.";
     if (!senha) return "Informe sua senha.";
     return "";
   };
@@ -28,7 +28,7 @@ export default function LoginPage() {
     e.preventDefault();
     setError("");
     
-    console.log("ðŸš€ Iniciando login...");
+    console.log("🚀 Iniciando login...");
 
     const validationError = validate();
     if (validationError) {
@@ -39,7 +39,7 @@ export default function LoginPage() {
     setLoading(true);
     
     try {
-      console.log("ðŸ”‘ Tentando login com:", email);
+      console.log("🔑 Tentando login com:", email);
       await login(email, senha);
       console.log("✅ Login bem-sucedido!");
       // Aguardar atualização do estado antes de redirecionar
@@ -47,11 +47,11 @@ export default function LoginPage() {
         router.push('/dashboard');
       }, 100);
     } catch (err: unknown) {
-      console.error("âŒ Erro no login:", err);
+      console.error("❌ Erro no login:", err);
       const errorCode = (err as { code?: string })?.code || "";
-      if (errorCode === "auth/user-not-found") setError("UsuÃ¡rio nÃ£o encontrado.");
+      if (errorCode === "auth/user-not-found") setError("Usuário não encontrado.");
       else if (errorCode === "auth/wrong-password") setError("Senha incorreta.");
-      else if (errorCode === "auth/invalid-email") setError("E-mail invÃ¡lido.");
+      else if (errorCode === "auth/invalid-email") setError("E-mail inválido.");
       else if (errorCode === "auth/user-disabled") setError("Conta desativada.");
       else if (errorCode === "auth/too-many-requests") setError("Muitas tentativas. Tente mais tarde.");
       else if (errorCode === "auth/network-request-failed") setError("Falha de rede. Verifique o emulador.");
@@ -83,7 +83,7 @@ export default function LoginPage() {
         <div className="max-w-md mx-auto">
           <Link href="/" className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors">
             <ArrowLeft size={20} />
-            <span className="text-sm">Voltar para o inÃ­cio</span>
+            <span className="text-sm">Voltar para o início</span>
           </Link>
         </div>
       </header>
@@ -187,7 +187,7 @@ export default function LoginPage() {
 
             <div className="mt-6 pt-6 border-t border-white/10 text-center">
               <p className="text-gray-400 text-sm">
-                NÃ£o tem conta?{' '}
+                Não tem conta?{' '}
                 <Link href="/registro" className="text-purple-400 hover:text-purple-300 font-medium transition-colors">
                   Criar
                 </Link>
@@ -199,5 +199,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-

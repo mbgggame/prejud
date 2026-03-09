@@ -129,7 +129,7 @@ export default function FreelasPage() {
 
   const handleCriarRegistro = (): void => {
     if (isLoggedIn) {
-      router.push('/dashboard');
+      router.push('/dashboard/novo-registro');
     } else {
       router.push('/registro');
     }
@@ -254,7 +254,7 @@ export default function FreelasPage() {
             <nav className="hidden md:flex items-center gap-8">
               <a href="#problemas" className="text-sm text-gray-400 hover:text-white transition-colors">Problemas</a>
               <a href="#como-funciona" className="text-sm text-gray-400 hover:text-white transition-colors">Como Funciona</a>
-              <a href="#seguranca" className="text-sm text-gray-400 hover:text-white transition-colors">Segurança</a>
+              <a href="#seguranca" className="text-sm text-gray-400 hover:text-white transition-colors">Seguranca</a>
               {/* NOVO: Item de menu Guias */}
               <Link href="/cliente-nao-pagou-freela" className="text-sm text-gray-400 hover:text-white transition-colors">Guias</Link>
               <Link href="/" className="text-sm text-gray-400 hover:text-white transition-colors">Home</Link>
@@ -317,7 +317,7 @@ export default function FreelasPage() {
                               className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                             >
                               <Settings size={16} />
-                              Configurações
+                              Configuracoes
                             </Link>
                             <div className="my-1 border-t border-white/10"></div>
                             <button
@@ -359,7 +359,7 @@ export default function FreelasPage() {
           <div className="md:hidden bg-[#0B0B0D] border-t border-white/5 px-6 py-4 space-y-4">
             <a href="#problemas" className="block text-gray-400 hover:text-white">Problemas</a>
             <a href="#como-funciona" className="block text-gray-400 hover:text-white">Como Funciona</a>
-            <a href="#seguranca" className="block text-gray-400 hover:text-white">Segurança</a>
+            <a href="#seguranca" className="block text-gray-400 hover:text-white">Seguranca</a>
             {/* NOVO: Item de menu Guias mobile */}
             <Link href="/cliente-nao-pagou-freela" className="block text-gray-400 hover:text-white">Guias</Link>
             <Link href="/" className="block text-gray-400 hover:text-white">Home</Link>
@@ -371,7 +371,7 @@ export default function FreelasPage() {
                   </span>
                   <Link href="/dashboard" className="block w-full text-left text-gray-300">Dashboard</Link>
                   <Link href="/perfil" className="block w-full text-left text-gray-300">Meu perfil</Link>
-                  <Link href="/configuracoes" className="block w-full text-left text-gray-300">Configurações</Link>
+                  <Link href="/configuracoes" className="block w-full text-left text-gray-300">Configuracoes</Link>
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-2 w-full px-4 py-2 bg-red-500/10 text-red-400 rounded-lg"
@@ -400,24 +400,23 @@ export default function FreelasPage() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-xs font-medium">
                 <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />
-                Para freelancers e prestadores de serviço
+                Para freelancers e prestadores de servico
               </div>
               
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight tracking-tight">
-                Seu cliente não pagou?{" "}
-                <span className="text-purple-400">Formalize o acordo</span> e cobre de forma profissional.
+                Infraestrutura digital para formalizar relações profissionais
               </h1>
               
               <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
-                O PreJud permite registrar acordos, gerar prova com hash SHA-256 e enviar cobranças formais quando necessário.
+                Registre acordos, preserve evidências verificáveis e utilize notificações formais quando necessário.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
-                  onClick={handleCriarRegistro}
+                  onClick={() => router.push('/dashboard/novo-registro?tipo=acordo')}
                   className="group px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
                 >
-                  Criar registro de acordo
+                  Formalizar acordo
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 <a 
@@ -435,7 +434,7 @@ export default function FreelasPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  Prova jurídica válida
+                  Prova juridica valida
                 </div>
               </div>
             </div>
@@ -468,8 +467,8 @@ export default function FreelasPage() {
 
                   <div className="flex items-center justify-between p-4 bg-yellow-500/5 rounded-lg border border-yellow-500/20">
                     <div>
-                      <p className="text-sm font-medium text-yellow-400">Notificação de Cobrança</p>
-                      <p className="text-xs text-gray-500">Enviada após vencimento</p>
+                      <p className="text-sm font-medium text-yellow-400">Notificacao de Cobranca</p>
+                      <p className="text-xs text-gray-500">Enviada apos vencimento</p>
                     </div>
                     <Send size={16} className="text-yellow-400" />
                   </div>
@@ -488,7 +487,7 @@ export default function FreelasPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Problemas comuns entre freelancers</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Situações que podem ser evitadas com registro formal.</p>
+            <p className="text-gray-400 max-w-2xl mx-auto">Situacoes que podem ser evitadas com registro formal.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -542,7 +541,7 @@ export default function FreelasPage() {
         </div>
       </section>
 
-      {/* Segurança Section */}
+      {/* Seguranca Section */}
       <section id="seguranca" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -567,7 +566,7 @@ export default function FreelasPage() {
         </div>
       </section>
 
-      {/* NOVA SEÇÃO: Guias e Recursos SEO */}
+      {/* NOVA SECAO: Guias e Recursos SEO */}
       <section id="guias" className="py-20 lg:py-32 bg-[#0B0B0D] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -607,17 +606,17 @@ export default function FreelasPage() {
       <section className="py-20 lg:py-32 bg-gradient-to-b from-purple-900/20 to-[#0B0B0D]">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-5xl font-bold mb-6">
-            Proteja seus próximos freelas
+            Proteja seus proximos freelas
           </h2>
           <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
             Formalize acordos e tenha uma forma profissional de resolver conflitos.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={handleCriarRegistro}
+              onClick={() => router.push('/dashboard/novo-registro?tipo=acordo')}
               className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all hover:scale-105"
             >
-              Criar meu primeiro registro
+              Fromalizar acordo
             </button>
             {isLoggedIn && (
               <Link 
@@ -643,7 +642,7 @@ export default function FreelasPage() {
                 <span className="text-xl font-semibold">PreJud</span>
               </div>
               <p className="text-sm text-gray-500">
-                Notificação extrajudicial com integridade digital garantida.
+                Notificacao extrajudicial com integridade digital garantida.
               </p>
             </div>
             
@@ -651,7 +650,7 @@ export default function FreelasPage() {
               <h4 className="font-semibold mb-4">Produto</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Preços</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Precos</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
@@ -660,16 +659,16 @@ export default function FreelasPage() {
             <div>
               <h4 className="font-semibold mb-4">Guias</h4>
               <ul className="space-y-2 text-sm text-gray-400">
-                <li><Link href="/cliente-nao-pagou-freela" className="hover:text-white transition-colors">Cliente não pagou freela</Link></li>
+                <li><Link href="/cliente-nao-pagou-freela" className="hover:text-white transition-colors">Cliente nao pagou freela</Link></li>
                 <li><Link href="/modelo-de-contrato" className="hover:text-white transition-colors">Modelo de contrato</Link></li>
                 <li><Link href="/como-cobrar-cliente" className="hover:text-white transition-colors">Como cobrar cliente</Link></li>
-                <li><Link href="/notificacao-extrajudicial-cobranca" className="hover:text-white transition-colors">Notificação extrajudicial</Link></li>
+                <li><Link href="/notificacao-extrajudicial-cobranca" className="hover:text-white transition-colors">Notificacao extrajudicial</Link></li>
                 <li><Link href="/prova-de-acordo-digital" className="hover:text-white transition-colors">Prova de acordo digital</Link></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Jurídico</h4>
+              <h4 className="font-semibold mb-4">Juridico</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
@@ -701,4 +700,3 @@ export default function FreelasPage() {
     </div>
   );
 }
-
