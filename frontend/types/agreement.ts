@@ -1,24 +1,30 @@
-// ==========================================
-// TIPOS DE ESTADO DO ACORDO - PREJUD
-// ==========================================
+﻿/**
+ * TYPES/AGREEMENT.TS
+ * 
+ * Fonte unica de verdade do dominio Agreement no PreJud.
+ */
 
-export type AgreementStatus = 
-  | "draft"                    // Rascunho - freelancer editando
-  | "pending_confirmation"     // Aguardando confirmação do cliente
-  | "confirmed"                // Acordo confirmado - ativo
-  | "contested"                // Cliente contestou o acordo
-  | "in_adjustment"            // Em ajuste após contestação
-  | "deadline_extension_pending" // Prorrogação pendente de resposta
-  | "amendment_pending"        // Aditivo pendente de resposta
-  | "charge_open"              // Cobrança aberta
-  | "charge_contested"         // Cobrança contestada
-  | "notice_sent"              // Notificação enviada
-  | "in_dispute"               // Em disputa (não reconhecido)
-  | "closed";                  // Caso encerrado
+// ============================================================================
+// STATUS DO ACORDO
+// ============================================================================
 
-// ==========================================
+export type AgreementStatus =
+  | "draft"
+  | "pending_confirmation"
+  | "confirmed"
+  | "contested"
+  | "in_adjustment"
+  | "deadline_extension_pending"
+  | "amendment_pending"
+  | "charge_open"
+  | "charge_contested"
+  | "notice_sent"
+  | "in_dispute"
+  | "closed";
+
+// ============================================================================
 // TIPOS DE EVENTOS DA TIMELINE
-// ==========================================
+// ============================================================================
 
 export type TimelineEventType =
   | "agreement_created"
@@ -42,15 +48,15 @@ export type TimelineEventType =
   | "dispute_opened"
   | "case_closed";
 
-// ==========================================
+// ============================================================================
 // TIPOS DE ATOR
-// ==========================================
+// ============================================================================
 
 export type ActorType = "freelancer" | "client" | "system";
 
-// ==========================================
+// ============================================================================
 // INTERFACE DE EVENTO DA TIMELINE
-// ==========================================
+// ============================================================================
 
 export interface TimelineEvent {
   id: string;
@@ -64,9 +70,9 @@ export interface TimelineEvent {
   metadata?: Record<string, any>;
 }
 
-// ==========================================
+// ============================================================================
 // INTERFACE DO ACORDO
-// ==========================================
+// ============================================================================
 
 export interface Agreement {
   id: string;
@@ -89,9 +95,9 @@ export interface Agreement {
   timeline: TimelineEvent[];
 }
 
-// ==========================================
-// AÇÕES POSSÍVEIS
-// ==========================================
+// ============================================================================
+// ACOES POSSIVEIS
+// ============================================================================
 
 export type FreelancerAction =
   | "edit_agreement"
@@ -118,15 +124,215 @@ export type ClientAction =
   | "not_recognize"
   | "view_history";
 
-// ==========================================
-// PERMISSÕES POR ESTADO
-// ==========================================
+// ============================================================================
+// PERMISSOES POR ESTADO
+// ============================================================================
 
 export interface StatePermissions {
   freelancer: FreelancerAction[];
   client: ClientAction[];
-  blocked: string[]; // Descrição do que está bloqueado
+  blocked: string[];
   statusLabel: string;
   statusColor: string;
   description: string;
+}
+
+// ============================================================================
+// PRORROGACAO DE PRAZO
+// ============================================================================
+
+export type DeadlineExtensionStatus = "pending" | "accepted" | "rejected" | "counter_proposed";
+
+export interface DeadlineExtension {
+  id: string;
+  agreementId: string;
+  requestedBy: "freelancer" | "client";
+  requesterId: string;
+  oldDeadline: string;
+  proposedDeadline: string;
+  reason: string;
+  status: DeadlineExtensionStatus;
+  requestedAt: string;
+  respondedAt?: string;
+  responseNote?: string;
+  counterProposalDeadline?: string;
+}
+
+export interface CreateDeadlineExtensionDTO {
+  agreementId: string;
+  proposedDeadline: string;
+  reason: string;
+}
+
+// ============================================================================
+// ADITIVO
+// ============================================================================
+
+export type AmendmentStatus = "pending" | "accepted" | "rejected" | "adjustment_requested";
+
+export interface Amendment {
+  id: string;
+  agreementId: string;
+  description: string;
+  changes: {
+    value?: string;
+    deadline?: string;
+    terms?: string;
+    serviceType?: string;
+  };
+  createdAt: string;
+  createdBy: "freelancer" | "client";
+  creatorId: string;
+  status: AmendmentStatus;
+  acceptedAt?: string;
+  adjustmentNote?: string;
+}
+
+export interface CreateAmendmentDTO {
+  agreementId: string;
+  description: string;
+  changes: {
+    value?: string;
+    deadline?: string;
+    terms?: string;
+    serviceType?: string;
+  };
+}
+
+// ============================================================================
+// COBRANCA
+// ============================================================================
+
+export type ChargeStatus = "pending" | "paid" | "contested" | "cancelled";
+export type PaymentMethod = "boleto" | "pix" | "credit_card" | "bank_transfer";
+
+export interface Charge {
+  id: string;
+  agreementId: string;
+  amount: number;
+  description: string;
+  dueDate: string;
+  status: ChargeStatus;
+  createdAt: string;
+  createdBy: string;
+  paidAt?: string;
+  paidAmount?: number;
+  paymentMethod?: PaymentMethod;
+  paymentProof?: string;
+  contestReason?: string;
+  externalTransactionId?: string;
+}
+
+export interface CreateChargeDTO {
+  agreementId: string;
+  amount: number;
+  description: string;
+  dueDate: string;
+}
+
+// ============================================================================
+// NOTIFICACAO
+// ============================================================================
+
+export type NoticeType = "payment_demand" | "breach_warning" | "contract_termination" | "general";
+
+export interface Notice {
+  id: string;
+  agreementId: string;
+  type: NoticeType;
+  title: string;
+  content: string;
+  sentBy: "freelancer" | "client";
+  senderId: string;
+  sentAt: string;
+  readAt?: string;
+  response?: string;
+  respondedAt?: string;
+}
+
+export interface CreateNoticeDTO {
+  agreementId: string;
+  type: NoticeType;
+  title: string;
+  content: string;
+}
+
+// ============================================================================
+// PROPS DE COMPONENTES
+// ============================================================================
+
+export interface AgreementStatusBadgeProps {
+  status: AgreementStatus;
+  showLabel?: boolean;
+  size?: "sm" | "md" | "lg";
+}
+
+export interface BlockedActionsListProps {
+  status: AgreementStatus;
+  showTitle?: boolean;
+}
+
+export interface TimelineProps {
+  events: TimelineEvent[];
+  className?: string;
+}
+
+export interface TimelineEventItemProps {
+  event: TimelineEvent;
+  isLast?: boolean;
+}
+
+export interface AgreementActionModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess?: () => void;
+  agreementId: string;
+}
+
+export interface ProrrogacaoModalProps extends AgreementActionModalProps {
+  currentDeadline?: string;
+}
+
+export interface AditivoModalProps extends AgreementActionModalProps {
+  currentValue?: string;
+  currentDeadline?: string;
+}
+
+export interface CobrancaModalProps extends AgreementActionModalProps {
+  defaultAmount?: number;
+}
+
+export interface NotificacaoModalProps extends AgreementActionModalProps {
+  defaultType?: NoticeType;
+}
+
+// ============================================================================
+// TIPOS PARA HOOKS
+// ============================================================================
+
+export interface UseAgreementPermissionsProps {
+  status: AgreementStatus;
+  userType: "freelancer" | "client";
+}
+
+// ============================================================================
+// FILTROS E STATS
+// ============================================================================
+
+export interface AgreementFilters {
+  status?: AgreementStatus;
+  search?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  clientId?: string;
+  freelancerId?: string;
+}
+
+export interface AgreementStats {
+  total: number;
+  active: number;
+  pending: number;
+  completed: number;
+  inDispute: number;
+  totalValue: number;
 }

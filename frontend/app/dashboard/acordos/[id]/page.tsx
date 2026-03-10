@@ -1,8 +1,7 @@
-﻿﻿"use client";
+﻿
+"use client";
 
-import React from 'react';
-
-import { useState } from "react";
+import React from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -12,12 +11,12 @@ import {
   Briefcase,
   DollarSign,
   Calendar,
-  Hash,
   Clock4,
   Edit3,
   Send,
 } from "lucide-react";
-import { AgreementStatus, TimelineEvent } from "@/types/agreement";
+
+import { useAgreement } from "@/lib/hooks/useAgreement";
 import { useFreelancerPermissions } from "@/lib/agreement/permissions";
 import { AgreementStatusBadge } from "@/components/agreement/AgreementStatusBadge";
 import { BlockedActionsList } from "@/components/agreement/BlockedActionsList";
@@ -28,135 +27,116 @@ import {
   CobrancaModal,
   NotificacaoModal,
 } from "@/components/modals";
-
-// ==========================================
-// MOCK DE DADOS
-// ==========================================
-
-const mockAgreement = {
-  id: "agr_123",
-  title: "Desenvolvimento de Landing Page",
-  freelancerId: "freelancer_1",
-  freelancerName: "João Silva",
-  clientName: "Maria Oliveira",
-  clientEmail: "maria@empresa.com",
-  clientDocument: "123.456.789-00",
-  serviceType: "Desenvolvimento de site",
-  description: "Criação de landing page institucional responsiva",
-  value: "R$ 3.500,00",
-  deadline: "15/04/2024",
-  terms: "Entrega em 15 dias úteis. Inclui 2 revisões.",
-  status: "confirmed" as AgreementStatus,
-  protocol: "PRC-2024-001234",
-  hash: "a3f5c8e9d2b1f4e7...",
-  createdAt: "2024-03-01T10:00:00Z",
-  updatedAt: "2024-03-01T10:00:00Z",
-};
-
-const mockTimeline: TimelineEvent[] = [
-  {
-    id: "evt_1",
-    type: "agreement_created",
-    actorType: "freelancer",
-    actorName: "João Silva",
-    createdAt: "2024-03-01T10:00:00Z",
-    title: "Acordo criado",
-    description: "O acordo foi registrado na plataforma.",
-  },
-  {
-    id: "evt_2",
-    type: "invitation_sent",
-    actorType: "system",
-    actorName: "PreJud",
-    createdAt: "2024-03-01T10:05:00Z",
-    title: "Convite enviado",
-    description: "Um convite foi enviado ao cliente para confirmação.",
-  },
-  {
-    id: "evt_3",
-    type: "client_confirmed",
-    actorType: "client",
-    actorName: "Maria Oliveira",
-    createdAt: "2024-03-02T14:30:00Z",
-    title: "Acordo confirmado",
-    description: "O cliente confirmou o acordo.",
-  },
-];
-
-// ==========================================
-// PÁGINA PRINCIPAL
-// ==========================================
+import {
+  CreateDeadlineExtensionDTO,
+  CreateAmendmentDTO,
+  CreateChargeDTO,
+  CreateNoticeDTO,
+} from "@/types/agreement";
 
 export default function AcordoDetalhePage(): React.JSX.Element {
   const router = useRouter();
   const params = useParams();
-  const [showProrrogacao, setShowProrrogacao] = useState(false);
-  const [showAditivo, setShowAditivo] = useState(false);
-  const [showCobranca, setShowCobranca] = useState(false);
-  const [showNotificacao, setShowNotificacao] = useState(false);
-  const [timeline, setTimeline] = useState<TimelineEvent[]>(mockTimeline);
+  const agreementId = params.id as string;
 
-  const permissions = useFreelancerPermissions(mockAgreement.status);
+  const {
+    agreement,
+    events,
+    loading,
+    error,
+    requestDeadlineExtension,
+    createAmendment,
+    createCharge,
+    sendNotice,
+  } = useAgreement(agreementId);
 
-  const handleProrrogacao = (data: { novoPrazo: string; motivo: string }) => {
-    const newEvent: TimelineEvent = {
-      id: `evt_${Date.now()}`,
-      type: "deadline_extension_requested",
-      actorType: "freelancer",
-      actorName: "João Silva",
-      createdAt: new Date().toISOString(),
-      title: "Prorrogação solicitada",
-      description: `Novo prazo proposto: ${data.novoPrazo}. Motivo: ${data.motivo}`,
-    };
-    setTimeline([...timeline, newEvent]);
-    setShowProrrogacao(false);
+  const permissions = useFreelancerPermissions(agreement?.status ?? "draft");
+
+  const [showProrrogacao, setShowProrrogacao] = React.useState(false);
+  const [showAditivo, setShowAditivo] = React.useState(false);
+  const [showCobranca, setShowCobranca] = React.useState(false);
+  const [showNotificacao, setShowNotificacao] = React.useState(false);
+
+  const handleProrrogacao = async (data: { novoPrazo: string; motivo: string }) => {
+    try {
+      const payload: CreateDeadlineExtensionDTO = {
+        agreementId,
+        proposedDeadline: data.novoPrazo,
+        reason: data.motivo,
+      };
+      await requestDeadlineExtension(payload);
+      setShowProrrogacao(false);
+    } catch (err) {
+      alert("Erro ao solicitar prorrogacao: " + (err as Error).message);
+    }
   };
 
-  const handleAditivo = (data: any) => {
-    const newEvent: TimelineEvent = {
-      id: `evt_${Date.now()}`,
-      type: "amendment_created",
-      actorType: "freelancer",
-      actorName: "João Silva",
-      createdAt: new Date().toISOString(),
-      title: "Aditivo gerado",
-      description: data.titulo,
-    };
-    setTimeline([...timeline, newEvent]);
-    setShowAditivo(false);
+  const handleAditivo = async (data: any) => {
+    try {
+      const payload: CreateAmendmentDTO = {
+        agreementId,
+        description: data.titulo || data.descricao || "Aditivo gerado",
+        changes: {
+          value: data.valor,
+          deadline: data.prazo,
+          terms: data.termos,
+        },
+      };
+      await createAmendment(payload);
+      setShowAditivo(false);
+    } catch (err) {
+      alert("Erro ao criar aditivo: " + (err as Error).message);
+    }
   };
 
-  const handleCobranca = (data: any) => {
-    const newEvent: TimelineEvent = {
-      id: `evt_${Date.now()}`,
-      type: "charge_created",
-      actorType: "freelancer",
-      actorName: "João Silva",
-      createdAt: new Date().toISOString(),
-      title: "Cobrança criada",
-      description: `Valor: ${data.valor} - Vencimento: ${data.dataVencimento}`,
-    };
-    setTimeline([...timeline, newEvent]);
-    setShowCobranca(false);
+  const handleCobranca = async (data: any) => {
+    try {
+      const payload: CreateChargeDTO = {
+        agreementId,
+        amount: parseFloat(data.valor?.replace(/[^\d,]/g, "").replace(",", ".")) || 0,
+        description: data.descricao || "Cobranca gerada",
+        dueDate: data.dataVencimento,
+      };
+      await createCharge(payload);
+      setShowCobranca(false);
+    } catch (err) {
+      alert("Erro ao criar cobranca: " + (err as Error).message);
+    }
   };
 
-  const handleNotificacao = (data: any) => {
-    const newEvent: TimelineEvent = {
-      id: `evt_${Date.now()}`,
-      type: "notice_sent",
-      actorType: "freelancer",
-      actorName: "João Silva",
-      createdAt: new Date().toISOString(),
-      title: "Notificação enviada",
-      description: data.assunto,
-    };
-    setTimeline([...timeline, newEvent]);
-    setShowNotificacao(false);
+  const handleNotificacao = async (data: any) => {
+    try {
+      const payload: CreateNoticeDTO = {
+        agreementId,
+        type: "general",
+        title: data.assunto || "Notificacao formal",
+        content: data.conteudo || data.mensagem || "",
+      };
+      await sendNotice(payload);
+      setShowNotificacao(false);
+    } catch (err) {
+      alert("Erro ao enviar notificacao: " + (err as Error).message);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
+        <div className="text-white">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (error || !agreement) {
+    return (
+      <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
+        <div className="text-red-400">{error || "Acordo nao encontrado"}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0B0B0D]">
-      {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0B0D]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -175,22 +155,20 @@ export default function AcordoDetalhePage(): React.JSX.Element {
         </div>
       </header>
 
-      {/* MAIN */}
       <main className="pt-24 pb-12 px-4 md:px-8 max-w-7xl mx-auto">
-        {/* RESUMO DO CASO */}
         <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 mb-6">
           <div className="flex items-start justify-between mb-6">
             <div>
               <div className="flex items-center gap-3 mb-2">
-                <AgreementStatusBadge status={mockAgreement.status} />
-                <span className="text-xs text-gray-500 font-mono">{mockAgreement.protocol}</span>
+                <AgreementStatusBadge status={agreement.status} />
+                <span className="text-xs text-gray-500 font-mono">{agreement.protocol}</span>
               </div>
-              <h1 className="text-2xl font-bold text-white mb-1">{mockAgreement.title}</h1>
-              <p className="text-gray-400">{mockAgreement.serviceType}</p>
+              <h1 className="text-2xl font-bold text-white mb-1">{agreement.title}</h1>
+              <p className="text-gray-400">{agreement.serviceType}</p>
             </div>
             <div className="text-right">
               <p className="text-xs text-gray-500 mb-1">Hash</p>
-              <code className="text-xs text-emerald-400 font-mono">{mockAgreement.hash}</code>
+              <code className="text-xs text-emerald-400 font-mono">{agreement.hash}</code>
             </div>
           </div>
 
@@ -201,7 +179,7 @@ export default function AcordoDetalhePage(): React.JSX.Element {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Cliente</p>
-                <p className="text-white text-sm">{mockAgreement.clientName}</p>
+                <p className="text-white text-sm">{agreement.clientName}</p>
               </div>
             </div>
 
@@ -211,7 +189,7 @@ export default function AcordoDetalhePage(): React.JSX.Element {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Valor</p>
-                <p className="text-white text-sm">{mockAgreement.value}</p>
+                <p className="text-white text-sm">{agreement.value}</p>
               </div>
             </div>
 
@@ -221,7 +199,7 @@ export default function AcordoDetalhePage(): React.JSX.Element {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Prazo</p>
-                <p className="text-white text-sm">{mockAgreement.deadline}</p>
+                <p className="text-white text-sm">{agreement.deadline}</p>
               </div>
             </div>
 
@@ -231,15 +209,14 @@ export default function AcordoDetalhePage(): React.JSX.Element {
               </div>
               <div>
                 <p className="text-xs text-gray-500">Tipo</p>
-                <p className="text-white text-sm">{mockAgreement.serviceType}</p>
+                <p className="text-white text-sm">{agreement.serviceType}</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* AÇÕES */}
         <div className="bg-white/[0.02] border border-white/10 rounded-2xl p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Ações do caso</h2>
+          <h2 className="text-lg font-semibold text-white mb-4">Acoes do caso</h2>
 
           <div className="flex flex-wrap gap-3 mb-4">
             {permissions.canRequestExtension && (
@@ -268,7 +245,7 @@ export default function AcordoDetalhePage(): React.JSX.Element {
                 className="flex items-center gap-2 px-4 py-3 bg-yellow-600 hover:bg-yellow-700 text-white rounded-xl font-medium transition-all"
               >
                 <DollarSign className="w-4 h-4" />
-                Criar cobrança
+                Criar cobranca
               </button>
             )}
 
@@ -278,24 +255,22 @@ export default function AcordoDetalhePage(): React.JSX.Element {
                 className="flex items-center gap-2 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all"
               >
                 <Send className="w-4 h-4" />
-                Emitir notificação
+                Emitir notificacao
               </button>
             )}
           </div>
 
-          <BlockedActionsList status={mockAgreement.status} />
+          <BlockedActionsList status={agreement.status} />
         </div>
 
-        {/* TIMELINE */}
-        <Timeline events={timeline} title="Histórico do caso" />
+        <Timeline events={events} title="Historico do caso" />
       </main>
 
-      {/* MODAIS */}
       <ProrrogacaoModal
         isOpen={showProrrogacao}
         onClose={() => setShowProrrogacao(false)}
         onSubmit={handleProrrogacao}
-        currentDeadline={mockAgreement.deadline}
+        currentDeadline={agreement.deadline}
       />
 
       <AditivoModal
@@ -308,7 +283,7 @@ export default function AcordoDetalhePage(): React.JSX.Element {
         isOpen={showCobranca}
         onClose={() => setShowCobranca(false)}
         onSubmit={handleCobranca}
-        defaultValue={mockAgreement.value}
+        defaultValue={agreement.value}
       />
 
       <NotificacaoModal
