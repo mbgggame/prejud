@@ -1,0 +1,13 @@
+﻿Projeto: PreJud SaaS
+Data: 2026-03-08 23:00:08
+Status: Salvo com segurança
+
+Último commit: f11ea50 Backup autom├ítico antes de desligar - 2026-03-08 23:00:07
+Branch atual: master
+
+Arquivos modificados:
+Nenhum
+
+Para restaurar:
+git log --oneline -5
+git checkout <hash-do-commit>

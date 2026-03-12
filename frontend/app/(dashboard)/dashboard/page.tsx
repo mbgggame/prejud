@@ -384,7 +384,7 @@ function getTabColor(tab: TabType): string {
 // COMPONENTE PRINCIPAL
 // ==========================================
 
-export default function DashboardPage(): React.JSX.Element | null | null {
+export default function DashboardPage() {
   const { user, logout, loading: authLoading } = useAuth();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
@@ -537,14 +537,19 @@ export default function DashboardPage(): React.JSX.Element | null | null {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
+              {/* LOGO ATUALIZADO - SUBSTITUÍDO PELO SVG */}
               <Link
                 href="/"
-                className="w-10 h-10 bg-purple-600 hover:bg-purple-700 rounded-xl flex items-center justify-center transition-all hover:scale-105"
+                className="flex items-center justify-center transition-all hover:scale-105"
               >
-                <Shield className="w-5 h-5 text-white" />
+                <img 
+                  src="/prejud-logo-1200x300.svg" 
+                  alt="PreJud" 
+                  className="h-10 w-auto"
+                />
               </Link>
               <div>
-                <h1 className="text-lg font-bold text-white">PreJud Dashboard</h1>
+                <h1 className="text-lg font-bold text-white">Dashboard</h1>
                 <p className="text-xs text-gray-400">Bem-vindo, {userName}</p>
               </div>
             </div>

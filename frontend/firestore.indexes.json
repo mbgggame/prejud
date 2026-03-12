@@ -1,0 +1,45 @@
+﻿{
+  "indexes": [
+    {
+      "collectionGroup": "agreement_events",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agreementId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "deadline_extensions",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agreementId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "amendments",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agreementId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "charges",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agreementId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "notices",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "agreementId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

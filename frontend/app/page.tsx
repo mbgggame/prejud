@@ -240,15 +240,14 @@ export default function FreelasPage() {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0B0D]/80 backdrop-blur-md border-b border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 lg:h-20">
-            {/* Logo */}
+            {/* Logo - ATUALIZADO COM SVG */}
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center overflow-hidden">
-                <span className="text-white font-bold text-lg">P</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xl font-semibold tracking-tight">PreJud</span>
-                <BrazilClock />
-              </div>
+              <img 
+                src="/prejud-logo-1200x300.svg" 
+                alt="PreJud" 
+                className="h-10 w-auto"
+              />
+              <BrazilClock />
             </div>
 
             <nav className="hidden md:flex items-center gap-8">
@@ -635,11 +634,13 @@ export default function FreelasPage() {
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid md:grid-cols-5 gap-8 mb-8">
             <div className="md:col-span-2">
+              {/* Logo no Footer - ATUALIZADO COM SVG */}
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">P</span>
-                </div>
-                <span className="text-xl font-semibold">PreJud</span>
+                <img 
+                  src="/prejud-logo-1200x300.svg" 
+                  alt="PreJud" 
+                  className="h-8 w-auto"
+                />
               </div>
               <p className="text-sm text-gray-500">
                 Notificacao extrajudicial com integridade digital garantida.
