@@ -1,10 +1,7 @@
 ﻿/**
  * FIREBASE AGREEMENT SERVICE
- * 
- * Implementação real do backend Firestore para o PreJud
- * Substitui os mocks por persistência real
- * 
- * Versão: Firebase SDK v12.10.0
+ * Real Firestore backend for PreJud
+ * Replaces mocks with persistent storage
  */
 
 import {
@@ -36,7 +33,7 @@ import type {
   Reputation
 } from '@/types/agreement';
 
-// ==================== COLEÇÕES FIRESTORE ====================
+// ==================== COLEï¿½ï¿½ES FIRESTORE ====================
 
 const COLLECTIONS = {
   USERS: 'users',
@@ -49,7 +46,7 @@ const COLLECTIONS = {
   REPUTATIONS: 'reputations'
 } as const;
 
-// ==================== FUNÇÕES DE ACORDOS ====================
+// ==================== FUNï¿½ï¿½ES DE ACORDOS ====================
 
 /**
  * Busca acordo por ID
@@ -74,7 +71,7 @@ export async function getAgreementById(id: string): Promise<Agreement | null> {
 }
 
 /**
- * Busca acordos por usuário (debtor ou creditor)
+ * Busca acordos por usuï¿½rio (debtor ou creditor)
  */
 export async function getAgreementsByUser(userId: string, role: 'debtor' | 'creditor'): Promise<Agreement[]> {
   const field = role === 'debtor' ? 'debtorId' : 'creditorId';
@@ -98,7 +95,7 @@ export async function getAgreementsByUser(userId: string, role: 'debtor' | 'cred
   });
 }
 
-// ==================== FUNÇÕES DE EVENTOS (TIMELINE) ====================
+// ==================== FUNï¿½ï¿½ES DE EVENTOS (TIMELINE) ====================
 
 /**
  * Busca eventos da timeline de um acordo
@@ -123,7 +120,7 @@ export async function getAgreementEvents(agreementId: string): Promise<Agreement
 }
 
 /**
- * Cria um evento na timeline (função interna para transações)
+ * Cria um evento na timeline (funï¿½ï¿½o interna para transaï¿½ï¿½es)
  */
 function createEventData(
   data: Omit<AgreementEvent, 'id' | 'createdAt'>
@@ -134,10 +131,10 @@ function createEventData(
   };
 }
 
-// ==================== PRORROGAÇÃO DE PRAZO ====================
+// ==================== PRORROGAï¿½ï¿½O DE PRAZO ====================
 
 /**
- * Solicita prorrogação de prazo
+ * Solicita prorrogaï¿½ï¿½o de prazo
  * Gera evento DEADLINE_EXTENSION_REQUESTED
  */
 export async function requestDeadlineExtension(
@@ -156,7 +153,7 @@ export async function requestDeadlineExtension(
   const eventData = createEventData({
     agreementId: data.agreementId,
     type: 'DEADLINE_EXTENSION_REQUESTED',
-    title: 'Solicitação de Prorrogação de Prazo',
+    title: 'Solicitaï¿½ï¿½o de Prorrogaï¿½ï¿½o de Prazo',
     description: `Prazo solicitado: ${new Date(data.requestedDeadline).toLocaleDateString('pt-BR')}`,
     actorId: data.requestedBy,
     actorType: data.requesterType,
@@ -189,7 +186,7 @@ export async function requestDeadlineExtension(
 }
 
 /**
- * Aprova ou rejeita prorrogação de prazo
+ * Aprova ou rejeita prorrogaï¿½ï¿½o de prazo
  * Gera evento DEADLINE_EXTENSION_APPROVED/REJECTED
  */
 export async function reviewDeadlineExtension(
@@ -201,7 +198,7 @@ export async function reviewDeadlineExtension(
   await runTransaction(db, async (transaction) => {
     const extensionRef = doc(db, COLLECTIONS.DEADLINE_EXTENSIONS, extensionId);
     
-    // Buscar dados da extensão
+    // Buscar dados da extensï¿½o
     const extensionDoc = await transaction.get(extensionRef);
     if (!extensionDoc.exists()) {
       throw new Error('Extension not found');
@@ -209,7 +206,7 @@ export async function reviewDeadlineExtension(
     
     const extensionData = extensionDoc.data();
     
-    // Atualizar extensão
+    // Atualizar extensï¿½o
     transaction.update(extensionRef, {
       status,
       reviewedBy,
@@ -222,7 +219,7 @@ export async function reviewDeadlineExtension(
     transaction.set(eventRef, {
       agreementId: extensionData.agreementId,
       type: status === 'approved' ? 'DEADLINE_EXTENSION_APPROVED' : 'DEADLINE_EXTENSION_REJECTED',
-      title: status === 'approved' ? 'Prorrogação Aprovada' : 'Prorrogação Rejeitada',
+      title: status === 'approved' ? 'Prorrogaï¿½ï¿½o Aprovada' : 'Prorrogaï¿½ï¿½o Rejeitada',
       description: reviewNotes || `Status alterado para: ${status === 'approved' ? 'Aprovado' : 'Rejeitado'}`,
       actorId: reviewedBy,
       actorType: 'creditor',
@@ -247,7 +244,7 @@ export async function reviewDeadlineExtension(
 }
 
 /**
- * Busca todas as extensões de prazo de um acordo
+ * Busca todas as extensï¿½es de prazo de um acordo
  */
 export async function getDeadlineExtensions(agreementId: string): Promise<DeadlineExtensionRequest[]> {
   const q = query(
@@ -384,10 +381,10 @@ export async function getAmendments(agreementId: string): Promise<Amendment[]> {
   });
 }
 
-// ==================== COBRANÇAS ====================
+// ==================== COBRANï¿½AS ====================
 
 /**
- * Cria cobrança
+ * Cria cobranï¿½a
  * Gera evento CHARGE_CREATED
  */
 export async function createCharge(
@@ -406,7 +403,7 @@ export async function createCharge(
   const eventData = {
     agreementId: data.agreementId,
     type: 'CHARGE_CREATED',
-    title: 'Cobrança Gerada',
+    title: 'Cobranï¿½a Gerada',
     description: `Valor: R$ ${data.amount.toFixed(2)} - Vencimento: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`,
     actorId: data.createdBy,
     actorType: 'creditor',
@@ -436,7 +433,7 @@ export async function createCharge(
 }
 
 /**
- * Marca cobrança como paga
+ * Marca cobranï¿½a como paga
  * Gera evento CHARGE_PAID
  */
 export async function payCharge(
@@ -466,7 +463,7 @@ export async function payCharge(
     transaction.set(eventRef, {
       agreementId: chargeData.agreementId,
       type: 'CHARGE_PAID',
-      title: 'Cobrança Paga',
+      title: 'Cobranï¿½a Paga',
       description: `Pagamento de R$ ${chargeData.amount.toFixed(2)} confirmado`,
       actorId: paidBy,
       actorType: 'debtor',
@@ -482,7 +479,7 @@ export async function payCharge(
 }
 
 /**
- * Busca todas as cobranças de um acordo
+ * Busca todas as cobranï¿½as de um acordo
  */
 export async function getCharges(agreementId: string): Promise<Charge[]> {
   const q = query(
@@ -505,10 +502,10 @@ export async function getCharges(agreementId: string): Promise<Charge[]> {
   });
 }
 
-// ==================== NOTIFICAÇÕES ====================
+// ==================== NOTIFICAï¿½ï¿½ES ====================
 
 /**
- * Envia notificação/notícia
+ * Envia notificaï¿½ï¿½o/notï¿½cia
  * Gera evento NOTICE_SENT
  */
 export async function sendNotice(
@@ -527,7 +524,7 @@ export async function sendNotice(
   const eventData = {
     agreementId: data.agreementId,
     type: 'NOTICE_SENT',
-    title: 'Notificação Enviada',
+    title: 'Notificaï¿½ï¿½o Enviada',
     description: data.subject,
     actorId: data.sentBy,
     actorType: data.senderType,
@@ -557,7 +554,7 @@ export async function sendNotice(
 }
 
 /**
- * Busca todas as notificações de um acordo
+ * Busca todas as notificaï¿½ï¿½es de um acordo
  */
 export async function getNotices(agreementId: string): Promise<Notice[]> {
   const q = query(
@@ -578,10 +575,10 @@ export async function getNotices(agreementId: string): Promise<Notice[]> {
   });
 }
 
-// ==================== REPUTAÇÃO ====================
+// ==================== REPUTAï¿½ï¿½O ====================
 
 /**
- * Atualiza reputação de um usuário em um acordo
+ * Atualiza reputaï¿½ï¿½o de um usuï¿½rio em um acordo
  */
 export async function updateReputation(
   data: Omit<Reputation, 'id' | 'createdAt' | 'updatedAt'>
@@ -606,7 +603,7 @@ export async function updateReputation(
 }
 
 /**
- * Busca reputação de um usuário
+ * Busca reputaï¿½ï¿½o de um usuï¿½rio
  */
 export async function getReputation(userId: string, agreementId?: string): Promise<Reputation | null> {
   let q = query(
@@ -632,10 +629,63 @@ export async function getReputation(userId: string, agreementId?: string): Promi
   } as Reputation;
 }
 
-// ==================== FUNÇÕES UTILITÁRIAS ====================
+
+// ==================== CREATE AGREEMENT ====================
+
+export async function createAgreement(
+  data: Omit<Agreement, 'id' | 'createdAt' | 'updatedAt' | 'timeline' | 'protocol'>
+): Promise<Agreement> {
+  const agreementRef = doc(collection(db, COLLECTIONS.AGREEMENTS));
+  const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
+  const timestamp = serverTimestamp();
+  const nowIso = new Date().toISOString();
+  const protocol = `PRJ-${Date.now()}`;
+  const clientAccessToken = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+  const agreementData = {
+    ...data,
+    protocol,
+    clientAccessToken,
+    timeline: [],
+    createdAt: timestamp,
+    updatedAt: timestamp
+  };
+
+  const eventData = {
+    agreementId: agreementRef.id,
+    type: 'agreement_created',
+    actorType: 'freelancer',
+    actorName: data.freelancerName,
+    actorId: data.freelancerId,
+    title: 'Acordo criado',
+    description: `Acordo "${data.title}" foi formalizado`,
+    metadata: {
+      protocol,
+      serviceType: data.serviceType
+    },
+    createdAt: timestamp
+  };
+
+  const batch = writeBatch(db);
+  batch.set(agreementRef, agreementData);
+  batch.set(eventRef, eventData);
+  await batch.commit();
+
+  return {
+    id: agreementRef.id,
+    ...data,
+    protocol,
+    clientAccessToken,
+    timeline: [],
+    createdAt: nowIso,
+    updatedAt: nowIso
+  } as Agreement;
+}
+
+// ==================== FUNï¿½ï¿½ES UTILITï¿½RIAS ====================
 
 /**
- * Busca estatísticas de um acordo
+ * Busca estatï¿½sticas de um acordo
  */
 export async function getAgreementStats(agreementId: string): Promise<{
   totalCharges: number;

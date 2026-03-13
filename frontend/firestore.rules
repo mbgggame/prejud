@@ -1,92 +1,90 @@
-rules_version = '2';
+﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper functions
+
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-    
-    function getUserRole() {
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
-    }
-    
+
     function isAdmin() {
-      return isAuthenticated() && getUserRole() == 'admin';
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
-    
-    function isCreditor() {
-      return isAuthenticated() && getUserRole() == 'creditor';
+
+    function isAgreementOwner(agreement) {
+      return isAuthenticated() && agreement != null && (
+        agreement.freelancerId == request.auth.uid ||
+        agreement.creditorId == request.auth.uid ||
+        agreement.debtorId == request.auth.uid ||
+        agreement.clientId == request.auth.uid
+      );
+
     }
-    
-    function isDebtor() {
-      return isAuthenticated() && getUserRole() == 'debtor';
+    function hasValidClientToken() {
+      return request.resource.data.clientAccessToken == resource.data.clientAccessToken
+        && resource.data.clientAccessToken != null;
     }
-    
-    function isPartyToAgreement(agreementId) {
-      let agreement = get(/databases/$(database)/documents/agreements/$(agreementId)).data;
-      return isAuthenticated() && (request.auth.uid == agreement.debtorId || request.auth.uid == agreement.creditorId);
-    }
-    
-    // Collection: users
     match /users/{userId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(userId) || isAdmin();
-      allow update: if isOwner(userId) || isAdmin();
+
+      allow create, update: if isAuthenticated() && request.auth.uid == userId || isAdmin();
       allow delete: if isAdmin();
     }
-    
-    // Collection: agreements
+
     match /agreements/{agreementId} {
-      allow read: if isPartyToAgreement(agreementId) || isAdmin();
-      allow create: if isCreditor() || isAdmin();
-      allow update: if isPartyToAgreement(agreementId) || isAdmin();
+      allow read: if isAuthenticated();
+      
+      allow create: if isAuthenticated() && (
+        request.resource.data.freelancerId == request.auth.uid ||
+        request.resource.data.creditorId == request.auth.uid ||
+        request.resource.data.debtorId == request.auth.uid ||
+        isAdmin()
+      );
+
+
+      allow update: if isAgreementOwner(resource.data) || isAdmin();
       allow delete: if isAdmin();
     }
-    
-    // Collection: agreement_events
+
     match /agreement_events/{eventId} {
-      allow read: if isAuthenticated() && isPartyToAgreement(resource.data.agreementId);
-      allow create: if isAuthenticated() && isPartyToAgreement(request.resource.data.agreementId);
+
+      allow read: if isAuthenticated();
+
+      allow create: if isAuthenticated() && (
+        request.resource.data.actorId == request.auth.uid || isAdmin()
+      );
+
       allow update, delete: if isAdmin();
     }
-    
-    // Collection: deadline_extensions
+
     match /deadline_extensions/{extensionId} {
-      allow read: if isAuthenticated() && isPartyToAgreement(resource.data.agreementId);
-      allow create: if isDebtor() && request.resource.data.requestedBy == request.auth.uid;
-      allow update: if isCreditor() || isAdmin();
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
     }
-    
-    // Collection: amendments
+
     match /amendments/{amendmentId} {
-      allow read: if isAuthenticated() && isPartyToAgreement(resource.data.agreementId);
-      allow create: if isCreditor() || isAdmin();
-      allow update: if isPartyToAgreement(resource.data.agreementId) || isAdmin();
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
     }
-    
-    // Collection: charges
+
     match /charges/{chargeId} {
-      allow read: if isAuthenticated() && isPartyToAgreement(resource.data.agreementId);
-      allow create: if isCreditor() || isAdmin();
-      allow update: if isCreditor() || isAdmin();
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated();
       allow delete: if isAdmin();
     }
-    
-    // Collection: notices
+
     match /notices/{noticeId} {
-      allow read: if isAuthenticated() && (request.auth.uid == resource.data.recipientId || request.auth.uid == resource.data.sentBy || isAdmin());
-      allow create: if isCreditor() || isAdmin();
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
       allow update, delete: if isAdmin();
     }
-    
-    // Collection: reputations
+
     match /reputations/{reputationId} {
       allow read: if isAuthenticated();
       allow create, update, delete: if isAdmin();

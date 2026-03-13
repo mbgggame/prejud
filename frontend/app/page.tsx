@@ -412,7 +412,7 @@ export default function FreelasPage() {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button 
-                  onClick={() => router.push('/dashboard/novo-registro?tipo=acordo')}
+                  onClick={() => router.push('/dashboard/formalizar-acordo')}
                   className="group px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
                 >
                   Formalizar acordo
@@ -612,7 +612,7 @@ export default function FreelasPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
-              onClick={() => router.push('/dashboard/novo-registro?tipo=acordo')}
+              onClick={() => router.push('/dashboard/formalizar-acordo')}
               className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all hover:scale-105"
             >
               Fromalizar acordo

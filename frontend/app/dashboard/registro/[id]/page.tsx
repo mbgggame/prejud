@@ -302,7 +302,7 @@ export default function RegistroPage() {
     if (!agreement?.protocol) return;
 
     try {
-      const publicUrl = `${window.location.origin}/p/${encodeURIComponent(agreement.protocol)}`;
+      const publicUrl = `${window.location.origin}/p/${encodeURIComponent(agreement.protocol)}?t=${agreement.clientAccessToken}`;
       await navigator.clipboard.writeText(publicUrl);
       setCopied(true);
       setCopyError(null);
@@ -316,7 +316,7 @@ export default function RegistroPage() {
 
   function handleOpenPublic() {
     if (!agreement?.protocol) return;
-    const publicUrl = `${window.location.origin}/p/${encodeURIComponent(agreement.protocol)}`;
+    const publicUrl = `${window.location.origin}/p/${encodeURIComponent(agreement.protocol)}?t=${agreement.clientAccessToken}`;
     window.open(publicUrl, '_blank');
   }
 

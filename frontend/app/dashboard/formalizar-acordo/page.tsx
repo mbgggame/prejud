@@ -6,6 +6,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import Link from "next/link";
+import { submitAgreement } from "@/services/agreementServiceAdapter";
 import {
   Shield,
   ArrowLeft,
@@ -66,7 +67,46 @@ interface AgreementFormData {
 }
 
 // ==========================================
-// CONFIGURAa‡aƒO
+// HELPERS DE FORMATAÇÃO
+// ==========================================
+
+function formatCurrencyBR(value: string): string {
+  const numericValue = value.replace(/\D/g, "");
+  const cents = parseInt(numericValue || "0", 10);
+  const formatted = (cents / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+  return formatted;
+}
+
+function unformatCurrencyBR(value: string): string {
+  const numericValue = value.replace(/\D/g, "");
+  const cents = parseInt(numericValue || "0", 10);
+  return (cents / 100).toFixed(2).replace(".", ",");
+}
+
+function formatDocumentBR(value: string): string {
+  const numericValue = value.replace(/\D/g, "");
+  const limited = numericValue.slice(0, 14);
+  if (limited.length <= 11) {
+    return limited
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+  } else {
+    return limited
+      .replace(/(\d{2})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1.$2")
+      .replace(/(\d{3})(\d)/, "$1/$2")
+      .replace(/(\d{4})(\d{1,2})$/, "$1-$2");
+  }
+}
+
+// ==========================================
+// CONFIGURAÇÃO
 // ==========================================
 
 const serviceTypes: { value: ServiceType; label: string }[] = [
@@ -118,9 +158,18 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
+    
+    // Aplicar máscaras específicas
+    let maskedValue = value;
+    if (name === "valor_acordo") {
+      maskedValue = formatCurrencyBR(value);
+    } else if (name === "cliente_documento") {
+      maskedValue = formatDocumentBR(value);
+    }
+    
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: maskedValue,
     }));
   };
 
@@ -140,33 +189,33 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
 
     setLoading(true);
 
-    // TODO: Integracao com backend
-    // const agreementData = {
-    //   id: generateId(),
-    //   titulo: formData.titulo_acordo,
-    //   freelancer_id: user?.uid,
-    //   cliente_nome: formData.cliente_nome,
-    //   cliente_email: formData.cliente_email,
-    //   cliente_documento: formData.cliente_documento,
-    //   tipo_servico: formData.tipo_servico === "outros" ? formData.tipo_servico_outro : formData.tipo_servico,
-    //   descricao: formData.descricao_servico,
-    //   valor: formData.valor_acordo,
-    //   prazo_entrega: formData.data_entrega,
-    //   termos: formData.termos_do_acordo,
-    //   status: "pendente_confirmacao",
-    //   created_at: new Date().toISOString(),
-    // };
-    
-    // await saveToFirestore("agreements", agreementData);
-    // await sendAgreementConfirmationEmail(formData.cliente_email, agreementData.id);
+    try {
+      const agreementData = {
+        title: formData.titulo_acordo,
+        freelancerId: user?.uid || "",
+        freelancerName: user?.displayName || user?.email || "Freelancer",
+        clientName: formData.cliente_nome,
+        clientEmail: formData.cliente_email,
+        clientDocument: formData.cliente_documento || "",
+        serviceType:
+          formData.tipo_servico === "outros"
+            ? formData.tipo_servico_outro
+            : formData.tipo_servico,
+        description: formData.descricao_servico,
+        value: unformatCurrencyBR(formData.valor_acordo),
+        deadline: formData.data_entrega,
+        terms: formData.termos_do_acordo,
+        status: "pending_client_confirmation",
+      };
 
-    // Simulacao de delay
-    setTimeout(() => {
+      await submitAgreement(agreementData);
       setLoading(false);
       router.push("/dashboard");
-    }, 1500);
+    } catch (error) {
+      console.error("Erro ao formalizar acordo:", error);
+      setLoading(false);
+    }
   };
-
   const showOtherService = formData.tipo_servico === "outros";
 
   return (
@@ -200,7 +249,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
 
       {/* MAIN */}
       <main className="pt-24 pb-12 px-4 md:px-8 max-w-4xl mx-auto">
-        {/* HEADER DO FORMULaRIO */}
+        {/* HEADER DO FORMULÁRIO */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
             <FileSignature className="w-3 h-3" />
@@ -215,7 +264,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SEa‡aƒO 1: DADOS DO CLIENTE */}
+          {/* SEÇÃO 1: DADOS DO CLIENTE */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -283,7 +332,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
             </div>
           </section>
 
-          {/* SEa‡aƒO 2: TIPO DE SERVIa‡O */}
+          {/* SEÇÃO 2: TIPO DE SERVIÇO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -334,7 +383,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
             </div>
           </section>
 
-          {/* SEa‡aƒO 3: DADOS DO ACORDO */}
+          {/* SEÇÃO 3: DADOS DO ACORDO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
@@ -429,7 +478,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
             </div>
           </section>
 
-          {/* SEa‡aƒO 4: FORMALIZAa‡aƒO */}
+          {/* SEÇÃO 4: FORMALIZAÇÃO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -455,7 +504,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
               </div>
             </div>
 
-            {/* BOTaƒO */}
+            {/* BOTÃO */}
             <button
               type="submit"
               disabled={loading || !validateForm()}
@@ -479,4 +528,3 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
     </div>
   );
 }
-

@@ -12,6 +12,7 @@ export type AgreementStatus =
   | "draft"
   | "pending_confirmation"
   | "confirmed"
+  | "rejected"
   | "contested"
   | "in_adjustment"
   | "deadline_extension_pending"

@@ -1,13 +1,13 @@
-﻿/**
- * ADAPTER: agreementService.ts -> firebaseAgreementService.ts
- * 
- * Mantém compatibilidade 100% com hooks/useAgreement.ts
- * NÃO ALTERAR hooks/useAgreement.ts
+/**
+ * AGREEMENT SERVICE ADAPTER
+ * Keeps compatibility with hooks/useAgreement.ts
+ * Do not modify hooks/useAgreement.ts here.
  */
 
 import {
   getAgreementById,
   getAgreementEvents,
+  createAgreement,
   requestDeadlineExtension,
   createAmendment,
   createCharge,
@@ -21,7 +21,7 @@ import {
   payCharge,
   getAgreementsByUser,
   getAgreementStats
-} from './firebaseAgreementService';
+} from "./firebaseAgreementService";
 
 import type {
   Agreement,
@@ -30,9 +30,7 @@ import type {
   Amendment,
   Charge,
   Notice
-} from '@/types/agreement';
-
-// ==================== INTERFACE COMPATÍVEL COM MOCK ORIGINAL ====================
+} from "@/types/agreement";
 
 /**
  * Busca acordo por ID
@@ -51,11 +49,21 @@ export async function fetchAgreementEvents(agreementId: string): Promise<Agreeme
 }
 
 /**
- * Solicita prorrogação de prazo
+ * Cria acordo
+ * Compatível com fluxo de formalização
+ */
+export async function submitAgreement(
+  data: Omit<Agreement, "id" | "createdAt" | "updatedAt" | "timeline" | "protocol">
+): Promise<Agreement> {
+  return createAgreement(data);
+}
+
+/**
+ * Solicita prorrogacao de prazo
  * Compatível com: hooks/useAgreement.ts
  */
 export async function submitDeadlineExtension(
-  data: Omit<DeadlineExtensionRequest, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+  data: Omit<DeadlineExtensionRequest, "id" | "createdAt" | "updatedAt" | "status">
 ): Promise<DeadlineExtensionRequest> {
   return requestDeadlineExtension(data);
 }
@@ -65,44 +73,41 @@ export async function submitDeadlineExtension(
  * Compatível com: hooks/useAgreement.ts
  */
 export async function submitAmendment(
-  data: Omit<Amendment, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+  data: Omit<Amendment, "id" | "createdAt" | "updatedAt" | "status">
 ): Promise<Amendment> {
   return createAmendment(data);
 }
 
 /**
- * Cria cobrança
+ * Cria cobranca
  * Compatível com: hooks/useAgreement.ts
  */
 export async function submitCharge(
-  data: Omit<Charge, 'id' | 'createdAt' | 'updatedAt' | 'status'>
+  data: Omit<Charge, "id" | "createdAt" | "updatedAt" | "status">
 ): Promise<Charge> {
   return createCharge(data);
 }
 
 /**
- * Envia notificação
+ * Envia notificacao
  * Compatível com: hooks/useAgreement.ts
  */
 export async function submitNotice(
-  data: Omit<Notice, 'id' | 'createdAt' | 'sentAt' | 'status'>
+  data: Omit<Notice, "id" | "createdAt" | "sentAt" | "status">
 ): Promise<Notice> {
   return sendNotice(data);
 }
 
-// ==================== FUNÇÕES ADICIONAIS (Firestore) ====================
-
+// Additional Firestore functions
 export {
-  // Funções principais
   getAgreementById,
   getAgreementEvents,
+  createAgreement,
   requestDeadlineExtension,
   createAmendment,
   createCharge,
   sendNotice,
   reviewDeadlineExtension,
-  
-  // Funções auxiliares
   getDeadlineExtensions,
   getAmendments,
   getCharges,
@@ -113,7 +118,6 @@ export {
   getAgreementStats
 };
 
-// Re-exportar tipos
 export type {
   Agreement,
   AgreementEvent,
@@ -122,3 +126,31 @@ export type {
   Charge,
   Notice
 };
+
+const agreementService = {
+  fetchAgreement,
+  fetchAgreementEvents,
+  submitAgreement,
+  submitDeadlineExtension,
+  submitAmendment,
+  submitCharge,
+  submitNotice,
+  getAgreementById,
+  getAgreementEvents,
+  createAgreement,
+  requestDeadlineExtension,
+  createAmendment,
+  createCharge,
+  sendNotice,
+  reviewDeadlineExtension,
+  getDeadlineExtensions,
+  getAmendments,
+  getCharges,
+  getNotices,
+  approveAmendment,
+  payCharge,
+  getAgreementsByUser,
+  getAgreementStats
+};
+
+export default agreementService;
