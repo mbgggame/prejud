@@ -36,6 +36,8 @@ import {
   Camera,
   History,
   Archive,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -71,6 +73,8 @@ interface Record {
   status: RecordStatus;
   date: string;
   protocol: string;
+  value?: string; // valor do acordo
+  freelancerId?: string; // ID do freelancer
   updatedAt?: any;
   createdAt?: any;
   hash?: string;
@@ -383,6 +387,39 @@ function getTabColor(tab: TabType): string {
 // ==========================================
 // COMPONENTE PRINCIPAL
 // ==========================================
+// HELPERS DE STATUS E AÇÕES
+// ==========================================
+
+function getAgreementStatusLabel(status: string): string {
+  const labels: Record<string, string> = {
+    pending_client_confirmation: "Aguardando cliente",
+    active: "Ativa",
+    rejected: "Recusada",
+    rascunho: "Rascunho",
+    formalizado: "Formalizado",
+    aguardando_resposta: "Aguardando resposta",
+    em_cobranca: "Em cobrança",
+    notificado: "Notificado",
+    respondido: "Respondido",
+    encerrado: "Encerrado",
+  };
+  return labels[status] || status;
+}
+
+function getAgreementStatusColor(status: string): string {
+  switch (status) {
+    case "pending_client_confirmation":
+      return "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
+    case "active":
+      return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+    case "rejected":
+      return "bg-red-500/10 border-red-500/20 text-red-400";
+    default:
+      return "bg-purple-500/10 border-purple-500/20 text-purple-400";
+  }
+}
+
+// ==========================================
 
 export default function DashboardPage() {
   const { user, logout, loading: authLoading } = useAuth();
@@ -391,6 +428,7 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<TabType>("todos");
   const [records, setRecords] = useState<Record[]>([]);
   const [loading, setLoading] = useState(true);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const isLocal = useMemo(() => {
     if (typeof window === "undefined") return false;
@@ -399,6 +437,26 @@ export default function DashboardPage() {
       window.location.hostname === "localhost"
     );
   }, []);
+
+  // Handlers de ação
+  async function handleCopyLink(protocol: string, id: string) {
+    if (!protocol?.trim()) return;
+
+    try {
+      const publicUrl = `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
+      await navigator.clipboard.writeText(publicUrl);
+      setCopiedId(id);
+      setTimeout(() => setCopiedId(null), 3000);
+    } catch (err) {
+      console.error('Erro ao copiar link:', err);
+    }
+  }
+
+  function handleOpenPublic(protocol: string) {
+    if (!protocol?.trim()) return;
+    const publicUrl = `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
+    window.open(publicUrl, '_blank');
+  }
 
   // Redirect se não autenticado
   useEffect(() => {
@@ -413,8 +471,8 @@ export default function DashboardPage() {
     console.log("[DASHBOARD] Buscando registros para:", user.uid);
 
     const q = query(
-      collection(db, "records"),
-      where("userId", "==", user.uid),
+      collection(db, "agreements"),
+      where("freelancerId", "==", user.uid),
       orderBy("createdAt", "desc")
     );
 
@@ -434,6 +492,8 @@ export default function DashboardPage() {
             status: (data.status as RecordStatus) || "rascunho",
             date: formatPtBrDateFromAny(data.createdAt || data.updatedAt),
             protocol: data.protocol || "N/A",
+            value: data.value || "",
+            freelancerId: data.freelancerId || "",
             updatedAt: data.updatedAt,
             createdAt: data.createdAt,
             hash: data.hash,
@@ -777,8 +837,13 @@ export default function DashboardPage() {
 
           <div className="divide-y divide-white/5">
             {filteredRecords.map((record) => {
-              const statusLabel = getStatusLabel(record.status);
-              const statusColorClass = getStatusColor(record.status);
+              const isAgreement = record.type === "acordo" || record.freelancerId;
+              const statusLabel = isAgreement 
+                ? getAgreementStatusLabel(record.status) 
+                : getStatusLabel(record.status);
+              const statusColorClass = isAgreement 
+                ? getAgreementStatusColor(record.status) 
+                : getStatusColor(record.status);
               const typeLabel = getRecordTypeLabel(record.type);
 
               return (
@@ -863,6 +928,33 @@ export default function DashboardPage() {
                         <Edit3 className="w-4 h-4" />
                         <span>Editar</span>
                       </Link>
+                    )}
+                    {/* AÇÕES DE PROPOSTA */}
+                    {record.protocol && (
+                      <button
+                        onClick={() => handleCopyLink(record.protocol, record.id)}
+                        disabled={copiedId === record.id}
+                        className={`flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 disabled:bg-emerald-500/20 border border-white/10 text-sm rounded-full transition-all whitespace-nowrap ${copiedId === record.id ? 'text-emerald-400' : 'text-gray-300'}`}
+                      >
+                        {copiedId === record.id ? (
+                          <span>Link copiado</span>
+                        ) : (
+                          <>
+                            <Copy className="w-4 h-4" />
+                            <span>Copiar link</span>
+                          </>
+                        )}
+                      </button>
+                    )}
+
+                    {record.protocol && (
+                      <button
+                        onClick={() => handleOpenPublic(record.protocol)}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm rounded-full transition-all whitespace-nowrap"
+                      >
+                        <ExternalLink className="w-4 h-4" />
+                        <span>Abrir proposta</span>
+                      </button>
                     )}
                   </div>
                 </div>
