@@ -53,6 +53,7 @@ interface AgreementFormData {
   cliente_nome: string;
   cliente_email: string;
   cliente_documento: string;
+  cliente_telefone: string;
   
   // Tipo de servico
   tipo_servico: ServiceType;
@@ -143,8 +144,9 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
   
   const [formData, setFormData] = useState<AgreementFormData>({
     cliente_nome: "",
-    cliente_email: "",
     cliente_documento: "",
+    cliente_telefone: "",
+    cliente_documento: "",`r`n    cliente_telefone: "",
     tipo_servico: "desenvolvimento_site",
     tipo_servico_outro: "",
     titulo_acordo: "",
@@ -159,7 +161,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
   ) => {
     const { name, value } = e.target;
     
-    // Aplicar máscaras específicas
     let maskedValue = value;
     if (name === "valor_acordo") {
       maskedValue = formatCurrencyBR(value);
@@ -205,7 +206,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
         value: unformatCurrencyBR(formData.valor_acordo),
         deadline: formData.data_entrega,
         terms: formData.termos_do_acordo,
-        status: "pending_client_confirmation",
+        status: "pending_confirmation" as const,
       };
 
       await submitAgreement(agreementData);
@@ -249,7 +250,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
 
       {/* MAIN */}
       <main className="pt-24 pb-12 px-4 md:px-8 max-w-4xl mx-auto">
-        {/* HEADER DO FORMULÁRIO */}
         <div className="mb-8">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-4">
             <FileSignature className="w-3 h-3" />
@@ -264,7 +264,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* SEÇÃO 1: DADOS DO CLIENTE */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
@@ -332,7 +331,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
             </div>
           </section>
 
-          {/* SEÇÃO 2: TIPO DE SERVIÇO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -383,7 +381,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
             </div>
           </section>
 
-          {/* SEÇÃO 3: DADOS DO ACORDO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center">
@@ -478,7 +475,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
             </div>
           </section>
 
-          {/* SEÇÃO 4: FORMALIZAÇÃO */}
           <section className="bg-white/[0.02] border border-white/10 rounded-2xl p-6">
             <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
               <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center">
@@ -490,7 +486,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
               </div>
             </div>
 
-            {/* AVISO IMPORTANTE */}
             <div className="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4 mb-6">
               <div className="flex items-start gap-3">
                 <AlertCircle className="w-5 h-5 text-blue-400 mt-0.5 flex-shrink-0" />
@@ -504,7 +499,6 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
               </div>
             </div>
 
-            {/* BOTÃO */}
             <button
               type="submit"
               disabled={loading || !validateForm()}
@@ -528,3 +522,4 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
     </div>
   );
 }
+
