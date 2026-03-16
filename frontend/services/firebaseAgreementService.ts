@@ -33,6 +33,7 @@ import type {
   Reputation
 } from '@/types/agreement';
 import { sendAgreementInvitationWhatsApp } from '@/lib/whatsapp';
+import { reputationService } from './reputationService';
 
 // ==================== COLEÇÕES FIRESTORE ====================
 
@@ -701,23 +702,23 @@ export async function createAgreement(
   if (emailResult.status === 'fulfilled') {
     const emailValue = emailResult.value as any;
     if (!emailValue?.skipped) {
-      console.log("✅ Email de convite enviado com sucesso para:", data.clientEmail);
+      console.log("? Email de convite enviado com sucesso para:", data.clientEmail);
     }
   } else {
-    console.error("❌ Falha ao enviar email:", emailResult.reason);
+    console.error("? Falha ao enviar email:", emailResult.reason);
   }
 
   if (whatsappResult.status === 'fulfilled') {
     const whatsappValue = whatsappResult.value as any;
     if (whatsappValue?.skipped) {
-      console.log("ℹ️ WhatsApp não enviado: telefone não informado");
+      console.log("?? WhatsApp não enviado: telefone não informado");
     } else if (whatsappValue?.success) {
-      console.log("✅ WhatsApp de convite enviado com sucesso para:", data.clientPhone);
+      console.log("? WhatsApp de convite enviado com sucesso para:", data.clientPhone);
     } else {
-      console.error("❌ Falha ao enviar WhatsApp:", whatsappValue?.error);
+      console.error("? Falha ao enviar WhatsApp:", whatsappValue?.error);
     }
   } else {
-    console.error("❌ Falha ao enviar WhatsApp:", whatsappResult.reason);
+    console.error("? Falha ao enviar WhatsApp:", whatsappResult.reason);
   }
 
   return {
@@ -784,6 +785,13 @@ export async function processPublicAgreementConfirmation(
 
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, eventData);
+
+  // Atualizar reputação do freelancer baseado na ação do cliente
+  if (isAccept) {
+    await reputationService.recordAgreementCompleted(agreementData.freelancerId);
+  } else {
+    await reputationService.recordDisputeStarted(agreementData.freelancerId);
+  }
 
   await batch.commit();
 }
@@ -866,5 +874,6 @@ export async function sendAgreementInvitationEmail(
     };
   }
 }
+
 
 
