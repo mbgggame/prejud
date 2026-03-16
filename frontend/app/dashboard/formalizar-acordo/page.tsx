@@ -13,6 +13,7 @@ import {
   FileSignature,
   User,
   Mail,
+  Phone,
   CreditCard,
   Briefcase,
   DollarSign,
@@ -26,7 +27,7 @@ import {
 // TIPOS
 // ==========================================
 
-type ServiceType = 
+type ServiceType =
   | "design_grafico"
   | "web_design"
   | "desenvolvimento_site"
@@ -54,11 +55,11 @@ interface AgreementFormData {
   cliente_email: string;
   cliente_documento: string;
   cliente_telefone: string;
-  
+
   // Tipo de servico
   tipo_servico: ServiceType;
   tipo_servico_outro: string;
-  
+
   // Dados do acordo
   titulo_acordo: string;
   descricao_servico: string;
@@ -106,6 +107,22 @@ function formatDocumentBR(value: string): string {
   }
 }
 
+function formatPhoneBR(value: string): string {
+  const numericValue = value.replace(/\D/g, "");
+  const limited = numericValue.slice(0, 11);
+  if (limited.length <= 10) {
+    return limited
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{4})(\d)/, "$1-$2")
+      .replace(/(\d{4})-(\d{4})$/, "$1-$2");
+  } else {
+    return limited
+      .replace(/(\d{2})(\d)/, "($1) $2")
+      .replace(/(\d{5})(\d)/, "$1-$2")
+      .replace(/(\d{4})-(\d{4})$/, "$1-$2");
+  }
+}
+
 // ==========================================
 // CONFIGURAÇÃO
 // ==========================================
@@ -141,12 +158,12 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
   const router = useRouter();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
-  
+
   const [formData, setFormData] = useState<AgreementFormData>({
     cliente_nome: "",
+    cliente_email: "",
     cliente_documento: "",
     cliente_telefone: "",
-    cliente_documento: "",`r`n    cliente_telefone: "",
     tipo_servico: "desenvolvimento_site",
     tipo_servico_outro: "",
     titulo_acordo: "",
@@ -160,14 +177,16 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    
+
     let maskedValue = value;
     if (name === "valor_acordo") {
       maskedValue = formatCurrencyBR(value);
     } else if (name === "cliente_documento") {
       maskedValue = formatDocumentBR(value);
+    } else if (name === "cliente_telefone") {
+      maskedValue = formatPhoneBR(value);
     }
-    
+
     setFormData((prev) => ({
       ...prev,
       [name]: maskedValue,
@@ -197,6 +216,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
         freelancerName: user?.displayName || user?.email || "Freelancer",
         clientName: formData.cliente_nome,
         clientEmail: formData.cliente_email,
+        clientPhone: formData.cliente_telefone || undefined,
         clientDocument: formData.cliente_documento || "",
         serviceType:
           formData.tipo_servico === "outros"
@@ -225,14 +245,14 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0B0D]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               <span className="text-sm">Voltar ao dashboard</span>
             </Link>
-            
+
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center">
                 <Shield className="w-5 h-5 text-white" />
@@ -242,7 +262,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
                 <p className="text-xs text-gray-400">Formalizar Acordo</p>
               </div>
             </div>
-            
+
             <div className="w-32" />
           </div>
         </div>
@@ -308,6 +328,23 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
                     placeholder="cliente@email.com"
                     className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
                     required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Telefone / WhatsApp
+                </label>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                  <input
+                    type="tel"
+                    name="cliente_telefone"
+                    value={formData.cliente_telefone}
+                    onChange={handleInputChange}
+                    placeholder="(00) 00000-0000"
+                    className="w-full pl-11 pr-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-purple-500/50 focus:ring-1 focus:ring-purple-500/50 transition-all"
                   />
                 </div>
               </div>
@@ -492,7 +529,7 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
                 <div>
                   <h4 className="text-sm font-medium text-blue-400 mb-1">Fluxo de confirmacao</h4>
                   <p className="text-sm text-gray-400">
-                    Um convite de confirmacao sera enviado ao cliente para validar este acordo. 
+                    Um convite de confirmacao sera enviado ao cliente para validar este acordo.
                     O acordo so tera validade apos a confirmacao do cliente.
                   </p>
                 </div>
@@ -522,4 +559,3 @@ export default function FormalizarAcordoPage(): React.JSX.Element {
     </div>
   );
 }
-
