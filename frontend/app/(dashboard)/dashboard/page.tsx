@@ -1,6 +1,6 @@
 ﻿﻿"use client";
 
-import React from 'react';
+import React from "react";
 
 import { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -45,7 +45,7 @@ import Link from "next/link";
 // TIPOS
 // ==========================================
 
-type RecordType = 
+type RecordType =
   | "acordo"
   | "contrato"
   | "cobranca"
@@ -54,7 +54,7 @@ type RecordType =
   | "resposta_recebida"
   | "prova_digital";
 
-type RecordStatus = 
+type RecordStatus =
   | "rascunho"
   | "formalizado"
   | "aguardando_resposta"
@@ -163,9 +163,9 @@ function formatDateTimeShort(ts: any): string {
     } else {
       return "-";
     }
-    
+
     if (Number.isNaN(date.getTime())) return "-";
-    
+
     return date.toLocaleString("pt-BR", {
       day: "2-digit",
       month: "2-digit",
@@ -236,15 +236,18 @@ function getEventColor(type: string): string {
 // COMPONENTE DE TIMELINE MINI
 // ==========================================
 
-function MiniTimeline({ events, createdAt }: { 
-  events?: EventType[]; 
+function MiniTimeline({
+  events,
+  createdAt,
+}: {
+  events?: EventType[];
   createdAt?: any;
 }) {
   const displayEvents = useMemo(() => {
     if (events && events.length > 0) {
       return events.slice(0, 3);
     }
-    
+
     const fallback: EventType[] = [];
     if (createdAt) {
       fallback.push({ type: "record_created", at: createdAt });
@@ -276,7 +279,7 @@ function MiniTimeline({ events, createdAt }: {
           </span>
         ))}
       </div>
-      
+
       {events && events.length > 3 && (
         <span className="text-xs text-gray-600">
           +{events.length - 3} eventos
@@ -291,7 +294,7 @@ function MiniTimeline({ events, createdAt }: {
 // ==========================================
 
 function getRecordTypeLabel(type: RecordType): string {
-  const labels: {[key: string]: string} = {
+  const labels: { [key: string]: string } = {
     acordo: "Acordo",
     contrato: "Contrato",
     cobranca: "Cobrança",
@@ -325,7 +328,7 @@ function getRecordTypeIcon(type: RecordType) {
 }
 
 function getStatusLabel(status: RecordStatus): string {
-  const labels: {[key: string]: string} = {
+  const labels: { [key: string]: string } = {
     rascunho: "Rascunho",
     formalizado: "Formalizado",
     aguardando_resposta: "Aguardando Resposta",
@@ -391,7 +394,7 @@ function getTabColor(tab: TabType): string {
 // ==========================================
 
 function getAgreementStatusLabel(status: string): string {
-  const labels: Record<string, string> = {
+  const labels: { [key: string]: string } = {
     pending_client_confirmation: "Aguardando cliente",
     active: "Ativa",
     rejected: "Recusada",
@@ -438,7 +441,6 @@ export default function DashboardPage() {
     );
   }, []);
 
-  // Handlers de ação
   async function handleCopyLink(protocol: string, id: string) {
     if (!protocol?.trim()) return;
 
@@ -448,23 +450,21 @@ export default function DashboardPage() {
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 3000);
     } catch (err) {
-      console.error('Erro ao copiar link:', err);
+      console.error("Erro ao copiar link:", err);
     }
   }
 
   function handleOpenPublic(protocol: string) {
     if (!protocol?.trim()) return;
     const publicUrl = `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
-    window.open(publicUrl, '_blank');
+    window.open(publicUrl, "_blank");
   }
 
-  // Redirect se não autenticado
   useEffect(() => {
     if (authLoading) return;
     if (!user) router.push("/login");
   }, [authLoading, user, router]);
 
-  // Busca registros em tempo real
   useEffect(() => {
     if (!user) return;
 
@@ -483,7 +483,7 @@ export default function DashboardPage() {
 
         snapshot.forEach((docSnap) => {
           const data = docSnap.data();
-          
+
           recs.push({
             id: docSnap.id,
             type: (data.type as RecordType) || "notificacao_extrajudicial",
@@ -517,58 +517,65 @@ export default function DashboardPage() {
     return () => unsubscribe();
   }, [user?.uid]);
 
-  // Estatísticas atualizadas
-  const stats = useMemo(() => ({
-    relacoesFormalizadas: records.filter((r) => 
-      r.type === "contrato" || r.type === "acordo"
-    ).length,
-    acordosRegistrados: records.filter((r) => r.type === "acordo").length,
-    cobrancasAtivas: records.filter((r) => 
-      r.type === "cobranca" && r.status !== "encerrado"
-    ).length,
-    notificacoesEnviadas: records.filter((r) => 
-      r.type === "notificacao_extrajudicial" && r.status !== "rascunho"
-    ).length,
-  }), [records]);
+  const stats = useMemo(
+    () => ({
+      relacoesFormalizadas: records.filter(
+        (r) => r.type === "contrato" || r.type === "acordo"
+      ).length,
+      acordosRegistrados: records.filter((r) => r.type === "acordo").length,
+      cobrancasAtivas: records.filter(
+        (r) => r.type === "cobranca" && r.status !== "encerrado"
+      ).length,
+      notificacoesEnviadas: records.filter(
+        (r) => r.type === "notificacao_extrajudicial" && r.status !== "rascunho"
+      ).length,
+    }),
+    [records]
+  );
 
-  // Filtros por aba
   const filteredRecords = useMemo(() => {
     switch (activeTab) {
       case "todos":
         return records;
-        
+
       case "formalizados":
-        return records.filter((r) => 
-          r.status === "formalizado" || r.status === "notificado"
+        return records.filter(
+          (r) => r.status === "formalizado" || r.status === "notificado"
         );
-        
+
       case "rascunho":
         return records.filter((r) => r.status === "rascunho");
-        
+
       case "ativos":
-        return records.filter((r) => 
+        return records.filter((r) =>
           ["aguardando_resposta", "em_cobranca", "notificado"].includes(r.status)
         );
-        
+
       default:
         return records;
     }
   }, [records, activeTab]);
 
-  // Dados de integridade
   const integrityData = useMemo(() => {
     const lastRecord = records[0];
     return {
-      hash: lastRecord?.hash || Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join(""),
+      hash:
+        lastRecord?.hash ||
+        Array.from({ length: 64 }, () =>
+          Math.floor(Math.random() * 16).toString(16)
+        ).join(""),
       lastProtocol: lastRecord?.protocol || "N/A",
-      lastValidated: lastRecord?.updatedAt 
+      lastValidated: lastRecord?.updatedAt
         ? formatDateTimeShort(lastRecord.updatedAt)
         : formatDateTimeShort(new Date()),
-      totalPreserved: records.filter(r => r.hash).length,
+      totalPreserved: records.filter((r) => r.hash).length,
     };
   }, [records]);
 
-  const userName = user?.displayName?.split(" ")[0] || user?.email?.split("@")[0] || "Usuário";
+  const userName =
+    user?.displayName?.split(" ")[0] ||
+    user?.email?.split("@")[0] ||
+    "Usuário";
   const userEmail = user?.email || "";
 
   const handleLogout = async () => {
@@ -592,19 +599,17 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0B0B0D]">
-      {/* HEADER */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0B0D]/90 backdrop-blur-md border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-4">
-              {/* LOGO ATUALIZADO - SUBSTITUÍDO PELO SVG */}
               <Link
                 href="/"
                 className="flex items-center justify-center transition-all hover:scale-105"
               >
-                <img 
-                  src="/prejud-logo-1200x300.svg" 
-                  alt="PreJud" 
+                <img
+                  src="/prejud-logo-1200x300.svg"
+                  alt="PreJud"
                   className="h-10 w-auto"
                 />
               </Link>
@@ -651,22 +656,35 @@ export default function DashboardPage() {
                   <div className="w-8 h-8 bg-purple-600/20 rounded-full flex items-center justify-center">
                     <User size={16} className="text-purple-400" />
                   </div>
-                  <span className="hidden sm:block text-sm font-medium">{userName}</span>
-                  <ChevronDown size={16} className={`transition-transform ${profileOpen ? "rotate-180" : ""}`} />
+                  <span className="hidden sm:block text-sm font-medium">
+                    {userName}
+                  </span>
+                  <ChevronDown
+                    size={16}
+                    className={`transition-transform ${profileOpen ? "rotate-180" : ""}`}
+                  />
                 </button>
 
                 {profileOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-[#1a1a1c] border border-white/10 rounded-xl shadow-2xl z-50 overflow-hidden">
                     <div className="px-4 py-3 border-b border-white/10 bg-white/5">
                       <p className="text-white font-medium text-sm">{userName}</p>
-                      <p className="text-gray-500 text-xs truncate">{userEmail}</p>
+                      <p className="text-gray-500 text-xs truncate">
+                        {userEmail}
+                      </p>
                     </div>
                     <div className="py-1">
-                      <Link href="/perfil" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                      <Link
+                        href="/perfil"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                      >
                         <User size={16} />
                         Meu perfil
                       </Link>
-                      <Link href="/configuracoes" className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                      <Link
+                        href="/configuracoes"
+                        className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
+                      >
                         <Settings size={16} />
                         Configurações
                       </Link>
@@ -687,74 +705,105 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      {/* MAIN */}
       <main className="pt-24 pb-8 px-4 md:px-8 max-w-7xl mx-auto">
-        {/* CARDS DE ESTATÍSTICAS - ATUALIZADOS */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           <button
             onClick={() => setActiveTab("todos")}
             className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "todos" ? "border-purple-500/50 bg-purple-500/5" : "border-white/10"
+              activeTab === "todos"
+                ? "border-purple-500/50 bg-purple-500/5"
+                : "border-white/10"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("todos")}`}>
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("todos")}`}
+              >
                 <Briefcase className="w-5 h-5 text-purple-400" />
               </div>
-              <span className="text-2xl font-bold text-white">{stats.relacoesFormalizadas}</span>
+              <span className="text-2xl font-bold text-white">
+                {stats.relacoesFormalizadas}
+              </span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Relações Formalizadas</p>
+            <p className="text-gray-400 text-xs md:text-sm">
+              Relações Formalizadas
+            </p>
           </button>
 
           <button
             onClick={() => setActiveTab("formalizados")}
             className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "formalizados" ? "border-emerald-500/50 bg-emerald-500/5" : "border-white/10"
+              activeTab === "formalizados"
+                ? "border-emerald-500/50 bg-emerald-500/5"
+                : "border-white/10"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("formalizados")}`}>
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("formalizados")}`}
+              >
                 <FileSignature className="w-5 h-5 text-emerald-400" />
               </div>
-              <span className="text-2xl font-bold text-white">{stats.acordosRegistrados}</span>
+              <span className="text-2xl font-bold text-white">
+                {stats.acordosRegistrados}
+              </span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Acordos Registrados</p>
+            <p className="text-gray-400 text-xs md:text-sm">
+              Acordos Registrados
+            </p>
           </button>
 
           <button
             onClick={() => setActiveTab("ativos")}
             className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "ativos" ? "border-orange-500/50 bg-orange-500/5" : "border-white/10"
+              activeTab === "ativos"
+                ? "border-orange-500/50 bg-orange-500/5"
+                : "border-white/10"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("ativos")}`}>
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("ativos")}`}
+              >
                 <DollarSign className="w-5 h-5 text-orange-400" />
               </div>
-              <span className="text-2xl font-bold text-white">{stats.cobrancasAtivas}</span>
+              <span className="text-2xl font-bold text-white">
+                {stats.cobrancasAtivas}
+              </span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Cobranças Ativas</p>
+            <p className="text-gray-400 text-xs md:text-sm">
+              Cobranças Ativas
+            </p>
           </button>
 
           <button
             onClick={() => setActiveTab("formalizados")}
             className={`text-left bg-white/[0.02] border rounded-2xl p-5 transition-all hover:bg-white/[0.04] ${
-              activeTab === "formalizados" ? "border-blue-500/50 bg-blue-500/5" : "border-white/10"
+              activeTab === "formalizados"
+                ? "border-blue-500/50 bg-blue-500/5"
+                : "border-white/10"
             }`}
           >
             <div className="flex items-center justify-between mb-3">
-              <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("formalizados")}`}>
+              <div
+                className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTabColor("formalizados")}`}
+              >
                 <Send className="w-5 h-5 text-blue-400" />
               </div>
-              <span className="text-2xl font-bold text-white">{stats.notificacoesEnviadas}</span>
+              <span className="text-2xl font-bold text-white">
+                {stats.notificacoesEnviadas}
+              </span>
             </div>
-            <p className="text-gray-400 text-xs md:text-sm">Notificações Enviadas</p>
+            <p className="text-gray-400 text-xs md:text-sm">
+              Notificações Enviadas
+            </p>
           </button>
         </div>
 
-        {/* AÇÕES RÁPIDAS - NOVA SEÇÃO */}
         <div className="mb-8">
-          <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">Ações Rápidas</h3>
+          <h3 className="text-sm font-medium text-gray-400 mb-4 uppercase tracking-wider">
+            Ações Rápidas
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
             <button
               onClick={() => router.push("/dashboard/formalizar-acordo")}
@@ -763,17 +812,23 @@ export default function DashboardPage() {
               <div className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <FileSignature className="w-5 h-5 text-emerald-400" />
               </div>
-              <span className="text-xs text-gray-300 text-center">Formalizar novo acordo</span>
+              <span className="text-xs text-gray-300 text-center">
+                Formalizar novo acordo
+              </span>
             </button>
 
             <button
-              onClick={() => router.push("/dashboard/novo-registro?tipo=prova_digital")}
+              onClick={() =>
+                router.push("/dashboard/novo-registro?tipo=prova_digital")
+              }
               className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
             >
               <div className="w-10 h-10 rounded-lg bg-cyan-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Camera className="w-5 h-5 text-cyan-400" />
               </div>
-              <span className="text-xs text-gray-300 text-center">Registrar prova digital</span>
+              <span className="text-xs text-gray-300 text-center">
+                Registrar prova digital
+              </span>
             </button>
 
             <button
@@ -783,17 +838,23 @@ export default function DashboardPage() {
               <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <DollarSign className="w-5 h-5 text-orange-400" />
               </div>
-              <span className="text-xs text-gray-300 text-center">Criar cobrança</span>
+              <span className="text-xs text-gray-300 text-center">
+                Criar cobrança
+              </span>
             </button>
 
             <button
-              onClick={() => router.push("/dashboard/novo-registro?tipo=notificacao")}
+              onClick={() =>
+                router.push("/dashboard/novo-registro?tipo=notificacao")
+              }
               className="flex flex-col items-center gap-2 p-4 bg-white/[0.02] border border-white/10 rounded-xl hover:bg-white/[0.04] hover:border-purple-500/30 transition-all group"
             >
               <div className="w-10 h-10 rounded-lg bg-purple-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <Send className="w-5 h-5 text-purple-400" />
               </div>
-              <span className="text-xs text-gray-300 text-center">Emitir notificação</span>
+              <span className="text-xs text-gray-300 text-center">
+                Emitir notificação
+              </span>
             </button>
 
             <button
@@ -803,16 +864,19 @@ export default function DashboardPage() {
               <div className="w-10 h-10 rounded-lg bg-gray-500/10 flex items-center justify-center group-hover:scale-110 transition-transform">
                 <History className="w-5 h-5 text-gray-400" />
               </div>
-              <span className="text-xs text-gray-300 text-center">Ver histórico completo</span>
+              <span className="text-xs text-gray-300 text-center">
+                Ver histórico completo
+              </span>
             </button>
           </div>
         </div>
 
-        {/* LISTA DE REGISTROS/CASOS - ATUALIZADA */}
         <div className="bg-white/[0.02] border border-white/10 rounded-2xl overflow-hidden">
           <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getTabColor(activeTab)}`}>
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center ${getTabColor(activeTab)}`}
+              >
                 {getTabIcon(activeTab)}
               </div>
               <h2 className="text-lg font-semibold text-white">
@@ -822,10 +886,11 @@ export default function DashboardPage() {
                 {activeTab === "ativos" && "Casos Ativos"}
               </h2>
             </div>
-            <span className="text-sm text-gray-500">{filteredRecords.length} item(s)</span>
+            <span className="text-sm text-gray-500">
+              {filteredRecords.length} item(s)
+            </span>
           </div>
 
-          {/* CABEÇALHO DA TABELA */}
           <div className="hidden md:grid grid-cols-12 gap-4 px-6 py-3 bg-white/[0.02] border-b border-white/5 text-xs text-gray-500 uppercase tracking-wider">
             <div className="col-span-2">Tipo</div>
             <div className="col-span-3">Título</div>
@@ -838,11 +903,11 @@ export default function DashboardPage() {
           <div className="divide-y divide-white/5">
             {filteredRecords.map((record) => {
               const isAgreement = record.type === "acordo" || record.freelancerId;
-              const statusLabel = isAgreement 
-                ? getAgreementStatusLabel(record.status) 
+              const statusLabel = isAgreement
+                ? getAgreementStatusLabel(record.status)
                 : getStatusLabel(record.status);
-              const statusColorClass = isAgreement 
-                ? getAgreementStatusColor(record.status) 
+              const statusColorClass = isAgreement
+                ? getAgreementStatusColor(record.status)
                 : getStatusColor(record.status);
               const typeLabel = getRecordTypeLabel(record.type);
 
@@ -852,15 +917,18 @@ export default function DashboardPage() {
                   className="px-6 py-4 hover:bg-white/[0.02] transition-all group"
                 >
                   <div className="flex items-start justify-between md:grid md:grid-cols-12 md:gap-4 md:items-center">
-                    {/* TIPO */}
                     <div className="hidden md:flex md:col-span-2 items-center gap-2">
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${getStatusColor(record.status).replace('text-', 'bg-').replace('/10', '/20').split(' ')[0]}`}>
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${getStatusColor(record.status)
+                          .replace("text-", "bg-")
+                          .replace("/10", "/20")
+                          .split(" ")[0]}`}
+                      >
                         {getRecordTypeIcon(record.type)}
                       </div>
                       <span className="text-sm text-gray-300">{typeLabel}</span>
                     </div>
 
-                    {/* TÍTULO */}
                     <div className="flex-1 md:col-span-3 min-w-0 mb-2 md:mb-0">
                       <h3 className="text-white font-medium group-hover:text-purple-400 transition-colors truncate">
                         {record.title}
@@ -871,35 +939,32 @@ export default function DashboardPage() {
                           {typeLabel}
                         </span>
                       </div>
-                      <MiniTimeline 
+                      <MiniTimeline
                         events={record.events}
                         createdAt={record.createdAt}
                       />
                     </div>
 
-                    {/* PARTE RELACIONADA */}
                     <div className="hidden md:block md:col-span-2 text-sm text-gray-400 truncate">
                       {record.partyName}
                     </div>
 
-                    {/* STATUS */}
                     <div className="md:col-span-2 flex items-center justify-end md:justify-start gap-2">
-                      <span className={`px-3 py-1 border text-xs rounded-full whitespace-nowrap ${statusColorClass}`}>
+                      <span
+                        className={`px-3 py-1 border text-xs rounded-full whitespace-nowrap ${statusColorClass}`}
+                      >
                         {statusLabel}
                       </span>
                     </div>
 
-                    {/* DATA */}
                     <div className="hidden md:block md:col-span-2 text-sm text-gray-500">
                       {formatDateTimeShort(record.updatedAt || record.createdAt)}
                     </div>
 
-                    {/* PROTOCOLO */}
                     <div className="hidden md:block md:col-span-1 text-xs text-gray-600 font-mono">
                       {record.protocol}
                     </div>
 
-                    {/* AÇÕES MOBILE */}
                     <div className="md:hidden flex items-center gap-2 ml-2">
                       <Link
                         href={`/dashboard/registro/${record.id}`}
@@ -910,7 +975,6 @@ export default function DashboardPage() {
                     </div>
                   </div>
 
-                  {/* AÇÕES DESKTOP */}
                   <div className="hidden md:flex items-center gap-2 mt-3 md:mt-0 md:justify-end">
                     <Link
                       href={`/dashboard/registro/${record.id}`}
@@ -929,12 +993,16 @@ export default function DashboardPage() {
                         <span>Editar</span>
                       </Link>
                     )}
-                    {/* AÇÕES DE PROPOSTA */}
+
                     {record.protocol && (
                       <button
                         onClick={() => handleCopyLink(record.protocol, record.id)}
                         disabled={copiedId === record.id}
-                        className={`flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 disabled:bg-emerald-500/20 border border-white/10 text-sm rounded-full transition-all whitespace-nowrap ${copiedId === record.id ? 'text-emerald-400' : 'text-gray-300'}`}
+                        className={`flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 disabled:bg-emerald-500/20 border border-white/10 text-sm rounded-full transition-all whitespace-nowrap ${
+                          copiedId === record.id
+                            ? "text-emerald-400"
+                            : "text-gray-300"
+                        }`}
                       >
                         {copiedId === record.id ? (
                           <span>Link copiado</span>
@@ -965,7 +1033,9 @@ export default function DashboardPage() {
           {filteredRecords.length === 0 && (
             <div className="px-6 py-12 text-center">
               <Archive className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500">Nenhum registro encontrado nesta categoria.</p>
+              <p className="text-gray-500">
+                Nenhum registro encontrado nesta categoria.
+              </p>
               <button
                 onClick={() => router.push("/dashboard/novo-registro")}
                 className="mt-4 text-purple-400 hover:text-purple-300 text-sm"
@@ -976,40 +1046,55 @@ export default function DashboardPage() {
           )}
         </div>
 
-        {/* SEÇÃO DE INTEGRIDADE - ATUALIZADA */}
         <div className="mt-8 bg-purple-600/5 border border-purple-600/20 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <Shield className="w-5 h-5 text-purple-400" />
-            <h3 className="text-purple-400 font-medium">Integridade do Sistema</h3>
+            <h3 className="text-purple-400 font-medium">
+              Integridade do Sistema
+            </h3>
           </div>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
             <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
               <p className="text-xs text-gray-500 mb-1">Hash SHA-256 Ativo</p>
               <code className="text-xs font-mono text-emerald-400 break-all">
-                {integrityData.hash.substring(0, 16)}...{integrityData.hash.substring(48)}
+                {integrityData.hash.substring(0, 16)}...
+                {integrityData.hash.substring(48)}
               </code>
             </div>
-            
+
             <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
-              <p className="text-xs text-gray-500 mb-1">Último Protocolo Gerado</p>
-              <p className="text-sm text-gray-300 font-mono">{integrityData.lastProtocol}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                Último Protocolo Gerado
+              </p>
+              <p className="text-sm text-gray-300 font-mono">
+                {integrityData.lastProtocol}
+              </p>
             </div>
-            
+
             <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
-              <p className="text-xs text-gray-500 mb-1">Último Registro Validado</p>
-              <p className="text-sm text-gray-300">{integrityData.lastValidated}</p>
+              <p className="text-xs text-gray-500 mb-1">
+                Último Registro Validado
+              </p>
+              <p className="text-sm text-gray-300">
+                {integrityData.lastValidated}
+              </p>
             </div>
-            
+
             <div className="bg-[#0a0a0c] rounded-lg p-3 border border-white/5">
-              <p className="text-xs text-gray-500 mb-1">Trilha de Eventos Preservada</p>
-              <p className="text-sm text-emerald-400">{integrityData.totalPreserved} registros</p>
+              <p className="text-xs text-gray-500 mb-1">
+                Trilha de Eventos Preservada
+              </p>
+              <p className="text-sm text-emerald-400">
+                {integrityData.totalPreserved} registros
+              </p>
             </div>
           </div>
-          
+
           <p className="text-gray-500 text-xs">
-            Todos os registros são protegidos por criptografia SHA-256 e carimbo de tempo imutável. 
-            A trilha de auditoria garante a integridade jurídica de cada caso.
+            Todos os registros são protegidos por criptografia SHA-256 e carimbo
+            de tempo imutável. A trilha de auditoria garante a integridade
+            jurídica de cada caso.
           </p>
         </div>
       </main>

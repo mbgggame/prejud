@@ -1,116 +1,98 @@
-﻿"use client";
+/**
+ * Hook useAgreement - PreJud SaaS
+ * Hook principal de gerenciamento de estado do acordo
+ */
 
-import { useState, useEffect, useCallback } from "react";
-import {
-  Agreement,
-  TimelineEvent,
-  CreateDeadlineExtensionDTO,
-  CreateAmendmentDTO,
-  CreateChargeDTO,
-  CreateNoticeDTO,
-} from "@/types/agreement";
-import { agreementService } from "@/services/agreementService";
+import { useState, useCallback, useEffect } from 'react';
+import { Agreement, AgreementStatus } from '@/types/agreement';
+import { agreementService } from '@/services/agreementService';
 
 interface UseAgreementReturn {
   agreement: Agreement | null;
-  events: TimelineEvent[];
   loading: boolean;
   error: string | null;
+  actions: {
+    canExtend: boolean;
+    canCharge: boolean;
+    canContest: boolean;
+    canConfirm: boolean;
+  };
+  transitionState: (newStatus: AgreementStatus, reason?: string) => Promise<boolean>;
   refresh: () => Promise<void>;
-  requestDeadlineExtension: (data: CreateDeadlineExtensionDTO) => Promise<void>;
-  createAmendment: (data: CreateAmendmentDTO) => Promise<void>;
-  createCharge: (data: CreateChargeDTO) => Promise<void>;
-  sendNotice: (data: CreateNoticeDTO) => Promise<void>;
 }
 
 export function useAgreement(agreementId: string): UseAgreementReturn {
   const [agreement, setAgreement] = useState<Agreement | null>(null);
-  const [events, setEvents] = useState<TimelineEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchAgreement = useCallback(async () => {
+  const loadAgreement = useCallback(async () => {
+    if (!agreementId) return;
+    
+    setLoading(true);
+    setError(null);
     try {
-      setLoading(true);
-      setError(null);
-
-      const [agreementData, eventsData] = await Promise.all([
-        agreementService.getAgreementById(agreementId),
-        agreementService.getAgreementEvents(agreementId),
-      ]);
-
-      if (!agreementData) {
-        setError("Acordo nao encontrado");
-        return;
-      }
-
-      setAgreement(agreementData);
-      setEvents(eventsData);
+      const data = await agreementService.getById(agreementId);
+      setAgreement(data);
     } catch (err) {
-      setError("Erro ao carregar acordo. Tente novamente.");
-      console.error("Error fetching agreement:", err);
+      setError(err instanceof Error ? err.message : 'Erro ao carregar acordo');
     } finally {
       setLoading(false);
     }
   }, [agreementId]);
 
   useEffect(() => {
-    fetchAgreement();
-  }, [fetchAgreement]);
+    loadAgreement();
+  }, [loadAgreement]);
 
-  const requestDeadlineExtension = async (data: CreateDeadlineExtensionDTO) => {
-    if (!agreement) return;
-    try {
-      await agreementService.requestDeadlineExtension(agreementId, data, agreement.freelancerName);
-      await fetchAgreement();
-    } catch (err) {
-      console.error("Error requesting extension:", err);
-      throw err;
-    }
+  const actions = {
+    canExtend: agreement?.status === 'confirmed',
+    canCharge: agreement?.status === 'confirmed' || agreement?.status === 'charge_open',
+    canContest: agreement?.status === 'pending_client_confirmation' || agreement?.status === 'charge_open',
+    canConfirm: agreement?.status === 'pending_client_confirmation'
   };
 
-  const createAmendment = async (data: CreateAmendmentDTO) => {
-    if (!agreement) return;
+  const transitionState = useCallback(async (newStatus: AgreementStatus, reason?: string): Promise<boolean> => {
+    if (!agreement) return false;
+    
+    setLoading(true);
     try {
-      await agreementService.createAmendment(agreementId, data, agreement.freelancerName);
-      await fetchAgreement();
+      // Mapeia status para metodo correspondente do service
+      switch (newStatus) {
+        case 'confirmed':
+          await agreementService.confirm(agreement.id, 'current-user-id');
+          break;
+        case 'in_dispute':
+          await agreementService.contest(agreement.id, reason || 'Contestado pelo cliente');
+          break;
+        case 'deadline_extension_pending':
+          await agreementService.requestExtension(agreement.id, new Date());
+          break;
+        case 'closed':
+          await agreementService.close(agreement.id);
+          break;
+        default:
+          // Para outros status, atualiza diretamente (mock)
+          agreement.status = newStatus;
+          agreement.updatedAt = new Date();
+      }
+      
+      await loadAgreement();
+      return true;
     } catch (err) {
-      console.error("Error creating amendment:", err);
-      throw err;
+      setError(err instanceof Error ? err.message : 'Erro na transicao');
+      return false;
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const createCharge = async (data: CreateChargeDTO) => {
-    if (!agreement) return;
-    try {
-      await agreementService.createCharge(agreementId, data, agreement.freelancerName);
-      await fetchAgreement();
-    } catch (err) {
-      console.error("Error creating charge:", err);
-      throw err;
-    }
-  };
-
-  const sendNotice = async (data: CreateNoticeDTO) => {
-    if (!agreement) return;
-    try {
-      await agreementService.sendNotice(agreementId, data, agreement.freelancerName);
-      await fetchAgreement();
-    } catch (err) {
-      console.error("Error sending notice:", err);
-      throw err;
-    }
-  };
+  }, [agreement, loadAgreement]);
 
   return {
     agreement,
-    events,
     loading,
     error,
-    refresh: fetchAgreement,
-    requestDeadlineExtension,
-    createAmendment,
-    createCharge,
-    sendNotice,
+    actions,
+    transitionState,
+    refresh: loadAgreement
   };
 }

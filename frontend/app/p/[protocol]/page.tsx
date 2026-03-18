@@ -1,10 +1,11 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   query,
   serverTimestamp,
@@ -13,11 +14,11 @@ import {
   orderBy,
   Timestamp,
 } from "firebase/firestore";
-import { db } from "@/lib/firebase"; // ajuste se o caminho real for outro
+import { db } from "@/lib/firebase";
 
 type AgreementStatus =
   | "draft"
-  | "pending_confirmation"
+  | "pending_client_confirmation"
   | "confirmed"
   | "rejected"
   | "contested"
@@ -71,12 +72,8 @@ function formatMoney(value?: number) {
 
 function formatDate(value?: Timestamp | Date | null) {
   if (!value) return "—";
-
-  const date =
-    value instanceof Timestamp ? value.toDate() : value instanceof Date ? value : null;
-
+  const date = value instanceof Timestamp ? value.toDate() : value instanceof Date ? value : null;
   if (!date) return "—";
-
   return date.toLocaleString("pt-BR");
 }
 
@@ -84,7 +81,7 @@ export default function PublicProposalPage() {
   const params = useParams();
   const searchParams = useSearchParams();
 
-  const protocol = useMemo(() => {
+  const agreementId = useMemo(() => {
     const raw = params?.protocol;
     return typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : "";
   }, [params]);
@@ -103,9 +100,9 @@ export default function PublicProposalPage() {
   const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
 
   useEffect(() => {
-    if (!protocol) {
+    if (!agreementId) {
       setLoading(false);
-      setError("Protocolo inválido.");
+      setError("ID do acordo inválido.");
       return;
     }
 
@@ -116,52 +113,30 @@ export default function PublicProposalPage() {
         setActionError(null);
         setActionSuccess(null);
 
-        const agreementsRef = collection(db, "agreements");
-        const agreementQuery = query(
-          agreementsRef,
-          where("protocol", "==", protocol)
-        );
+        const agreementRef = doc(db, "agreements", agreementId);
+        const agreementSnap = await getDoc(agreementRef);
 
-        const agreementSnap = await getDocs(agreementQuery);
-
-        if (agreementSnap.empty) {
+        if (!agreementSnap.exists()) {
           setAgreement(null);
           setIsTokenValid(false);
           setError("Proposta não encontrada.");
           return;
         }
 
-        const agreementDoc = agreementSnap.docs[0];
-        const agreementData = agreementDoc.data() as Omit<Agreement, "id">;
-
-        const agreementWithId: Agreement = {
-          id: agreementDoc.id,
-          ...agreementData,
-        };
-
+        const agreementData = agreementSnap.data() as Omit<Agreement, "id">;
+        const agreementWithId: Agreement = { id: agreementSnap.id, ...agreementData };
         setAgreement(agreementWithId);
 
-        const tokenIsValid =
-          !!urlToken &&
-          !!agreementWithId.clientAccessToken &&
-          urlToken === agreementWithId.clientAccessToken;
-
+        const tokenIsValid = !!urlToken && !!agreementWithId.clientAccessToken && urlToken === agreementWithId.clientAccessToken;
         setIsTokenValid(tokenIsValid);
 
         const eventsRef = collection(db, "agreement_events");
-        const eventsQuery = query(
-          eventsRef,
-          where("agreementId", "==", agreementDoc.id),
-          orderBy("createdAt", "asc")
-        );
-
+        const eventsQuery = query(eventsRef, where("agreementId", "==", agreementSnap.id), orderBy("createdAt", "asc"));
         const eventsSnap = await getDocs(eventsQuery);
-
         const eventsData: AgreementEvent[] = eventsSnap.docs.map((item) => ({
           id: item.id,
           ...(item.data() as Omit<AgreementEvent, "id">),
         }));
-
         setEvents(eventsData);
       } catch (err) {
         console.error("Erro ao carregar proposta pública:", err);
@@ -172,39 +147,19 @@ export default function PublicProposalPage() {
     }
 
     loadData();
-  }, [protocol, urlToken]);
+  }, [agreementId, urlToken]);
 
-  const canAct =
-    !!agreement &&
-    isTokenValid === true &&
-    agreement.status === "pending_confirmation" &&
-    !actionLoading;
+  const canAct = !!agreement && isTokenValid === true && agreement.status === "pending_client_confirmation" && !actionLoading;
 
   async function handleAccept() {
-    if (!agreement) return;
-    if (!canAct) return;
-
+    if (!agreement || !canAct) return;
     try {
       setActionLoading(true);
       setActionError(null);
       setActionSuccess(null);
-
       const agreementRef = doc(db, "agreements", agreement.id);
-
-      await updateDoc(agreementRef, {
-        status: "confirmed",
-        updatedAt: serverTimestamp(),
-      });
-
-      setAgreement((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: "confirmed",
-            }
-          : prev
-      );
-
+      await updateDoc(agreementRef, { status: "confirmed", updatedAt: serverTimestamp() });
+      setAgreement((prev) => prev ? { ...prev, status: "confirmed" } : prev);
       setActionSuccess("Proposta aceita com sucesso.");
     } catch (err) {
       console.error("Erro ao aceitar proposta:", err);
@@ -215,30 +170,14 @@ export default function PublicProposalPage() {
   }
 
   async function handleReject() {
-    if (!agreement) return;
-    if (!canAct) return;
-
+    if (!agreement || !canAct) return;
     try {
       setActionLoading(true);
       setActionError(null);
       setActionSuccess(null);
-
       const agreementRef = doc(db, "agreements", agreement.id);
-
-      await updateDoc(agreementRef, {
-        status: "rejected",
-        updatedAt: serverTimestamp(),
-      });
-
-      setAgreement((prev) =>
-        prev
-          ? {
-              ...prev,
-              status: "rejected",
-            }
-          : prev
-      );
-
+      await updateDoc(agreementRef, { status: "rejected", updatedAt: serverTimestamp() });
+      setAgreement((prev) => prev ? { ...prev, status: "rejected" } : prev);
       setActionSuccess("Proposta recusada com sucesso.");
     } catch (err) {
       console.error("Erro ao recusar proposta:", err);
@@ -277,9 +216,7 @@ export default function PublicProposalPage() {
     <main className="mx-auto max-w-4xl p-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">{agreement.title || "Proposta"}</h1>
-        <p className="mt-2 text-sm text-gray-600">
-          Protocolo: {agreement.protocol || "—"}
-        </p>
+        <p className="mt-2 text-sm text-gray-600">Protocolo: {agreement.protocol || "—"}</p>
       </div>
 
       <section className="mb-6 rounded-xl border p-4">
@@ -308,7 +245,6 @@ export default function PublicProposalPage() {
 
       <section className="mb-6 rounded-xl border p-4">
         <h2 className="mb-3 text-xl font-semibold">Timeline</h2>
-
         {events.length === 0 ? (
           <p>Nenhum evento encontrado.</p>
         ) : (
@@ -316,9 +252,7 @@ export default function PublicProposalPage() {
             {events.map((event) => (
               <div key={event.id} className="rounded-lg border p-3">
                 <p className="font-medium">{event.type || "Evento"}</p>
-                <p className="text-sm text-gray-600">
-                  {event.description || "Sem descrição"}
-                </p>
+                <p className="text-sm text-gray-600">{event.description || "Sem descrição"}</p>
                 <p className="mt-1 text-xs text-gray-500">
                   {formatDate(event.createdAt)} {event.actorName ? `• ${event.actorName}` : ""}
                 </p>
@@ -334,7 +268,7 @@ export default function PublicProposalPage() {
         </div>
       )}
 
-      {agreement.status !== "pending_confirmation" && (
+      {agreement.status !== "pending_client_confirmation" && (
         <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800">
           Esta proposta já foi processada e não pode mais ser alterada.
         </div>
@@ -352,24 +286,12 @@ export default function PublicProposalPage() {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-3">
-        <button
-          type="button"
-          onClick={handleAccept}
-          disabled={!canAct}
-          className="rounded-lg bg-green-600 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {actionLoading ? "Processando..." : "Aceitar proposta"}
-        </button>
-
-        <button
-          type="button"
-          onClick={handleReject}
-          disabled={!canAct}
-          className="rounded-lg bg-red-600 px-4 py-2 font-medium text-white disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {actionLoading ? "Processando..." : "Recusar proposta"}
-        </button>
+      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-800">
+        <p className="font-medium">Confirmação digital em implantação</p>
+        <p className="text-sm mt-1">
+          Em breve será possível aceitar ou recusar propostas diretamente por este link. 
+          Para formalizar o acordo, entre em contato com o freelancer.
+        </p>
       </div>
     </main>
   );

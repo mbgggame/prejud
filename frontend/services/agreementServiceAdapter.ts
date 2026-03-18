@@ -74,7 +74,7 @@ export async function submitDeadlineExtension(
  * CompatÃ­vel com: hooks/useAgreement.ts
  */
 export async function submitAmendment(
-  data: Omit<Amendment, "id" | "createdAt" | "updatedAt" | "status">
+  data: Omit<Amendment, "id" | "createdAt" | "acceptedAt" | "status">
 ): Promise<Amendment> {
   return createAmendment(data);
 }
@@ -84,7 +84,7 @@ export async function submitAmendment(
  * CompatÃ­vel com: hooks/useAgreement.ts
  */
 export async function submitCharge(
-  data: Omit<Charge, "id" | "createdAt" | "updatedAt" | "status">
+  data: Omit<Charge, "id" | "createdAt" | "paidAt" | "status">
 ): Promise<Charge> {
   return createCharge(data);
 }
@@ -94,7 +94,7 @@ export async function submitCharge(
  * CompatÃ­vel com: hooks/useAgreement.ts
  */
 export async function submitNotice(
-  data: Omit<Notice, "id" | "createdAt" | "sentAt" | "status">
+  data: Omit<Notice, "id" | "respondedAt" | "sentAt" | "readAt" | "response">
 ): Promise<Notice> {
   return sendNotice(data);
 }

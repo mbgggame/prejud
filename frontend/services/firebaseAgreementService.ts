@@ -1,4 +1,4 @@
-﻿/**
+/**
  * FIREBASE AGREEMENT SERVICE
  * Real Firestore backend for PreJud
  * Replaces mocks with persistent storage
@@ -29,13 +29,13 @@ import type {
   DeadlineExtension,
   Amendment,
   Charge,
-  Notice,
-  Reputation
+  Notice
 } from '@/types/agreement';
+import type { Reputation } from '@/types/reputation';
 import { sendAgreementInvitationWhatsApp } from '@/lib/whatsapp';
 import { reputationService } from './reputationService';
 
-// ==================== COLEÇÕES FIRESTORE ====================
+// ==================== COLE??ES FIRESTORE ====================
 
 const COLLECTIONS = {
   USERS: 'users',
@@ -48,7 +48,7 @@ const COLLECTIONS = {
   REPUTATIONS: 'reputations'
 } as const;
 
-// ==================== FUNÇÕES DE ACORDOS ====================
+// ==================== FUN??ES DE ACORDOS ====================
 
 /**
  * Busca acordo por ID
@@ -73,7 +73,7 @@ export async function getAgreementById(id: string): Promise<Agreement | null> {
 }
 
 /**
- * Busca acordos por usuário (debtor ou creditor)
+ * Busca acordos por usu?rio (debtor ou creditor)
  */
 export async function getAgreementsByUser(userId: string, role: 'debtor' | 'creditor'): Promise<Agreement[]> {
   const field = role === 'debtor' ? 'debtorId' : 'creditorId';
@@ -97,7 +97,7 @@ export async function getAgreementsByUser(userId: string, role: 'debtor' | 'cred
   });
 }
 
-// ==================== FUNÇÕES DE EVENTOS (TIMELINE) ====================
+// ==================== FUN??ES DE EVENTOS (TIMELINE) ====================
 
 /**
  * Busca eventos da timeline de um acordo
@@ -122,21 +122,21 @@ export async function getAgreementEvents(agreementId: string): Promise<TimelineE
 }
 
 /**
- * Cria um evento na timeline (função interna para transações)
+ * Cria um evento na timeline (fun??o interna para transa??es)
  */
 function createEventData(
   data: Omit<TimelineEvent, 'id' | 'createdAt'>
 ): Omit<TimelineEvent, 'id'> {
   return {
     ...data,
-    createdAt: new Date().toISOString()
+    createdAt: new Date()
   };
 }
 
-// ==================== PRORROGAÇÃO DE PRAZO ====================
+// ==================== PRORROGA??O DE PRAZO ====================
 
 /**
- * Solicita prorrogação de prazo
+ * Solicita prorroga??o de prazo
  * Gera evento deadline_extension_requested
  */
 export async function requestDeadlineExtension(
@@ -157,12 +157,12 @@ export async function requestDeadlineExtension(
     actorType: data.requestedBy,
     actorName: data.requestedBy === 'freelancer' ? 'Freelancer' : 'Cliente',
     actorId: data.requesterId,
-    title: 'Solicitação de Prorrogação de Prazo',
-    description: `Prazo solicitado: ${new Date(data.proposedDeadline).toLocaleDateString('pt-BR')}`,
+    title: 'Solicita??o de Prorroga??o de Prazo',
+    description: `Prazo solicitado: ${new Date(data.proposeddeadline).toLocaleDateString('pt-BR')}`,
     metadata: {
       extensionId: extensionRef.id,
-      proposedDeadline: data.proposedDeadline,
-      oldDeadline: data.oldDeadline,
+      proposeddeadline: data.proposeddeadline,
+      olddeadline: data.olddeadline,
       reason: data.reason
     }
   });
@@ -188,7 +188,7 @@ export async function requestDeadlineExtension(
 }
 
 /**
- * Aprova ou rejeita prorrogação de prazo
+ * Aprova ou rejeita prorroga??o de prazo
  * Gera evento deadline_extension_accepted/rejected
  */
 export async function reviewDeadlineExtension(
@@ -200,7 +200,7 @@ export async function reviewDeadlineExtension(
   await runTransaction(db, async (transaction) => {
     const extensionRef = doc(db, COLLECTIONS.DEADLINE_EXTENSIONS, extensionId);
     
-    // Buscar dados da extensão
+    // Buscar dados da extens?o
     const extensionDoc = await transaction.get(extensionRef);
     if (!extensionDoc.exists()) {
       throw new Error('Extension not found');
@@ -208,7 +208,7 @@ export async function reviewDeadlineExtension(
     
     const extensionData = extensionDoc.data();
     
-    // Atualizar extensão
+    // Atualizar extens?o
     transaction.update(extensionRef, {
       status,
       respondedAt: serverTimestamp(),
@@ -222,7 +222,7 @@ export async function reviewDeadlineExtension(
       actorType: 'client',
       actorName: 'Cliente',
       actorId: reviewedBy,
-      title: status === 'accepted' ? 'Prorrogação Aceita' : 'Prorrogação Rejeitada',
+      title: status === 'accepted' ? 'Prorroga??o Aceita' : 'Prorroga??o Rejeitada',
       description: responseNote || `Status alterado para: ${status === 'accepted' ? 'Aceito' : 'Rejeitado'}`,
       metadata: {
         extensionId,
@@ -237,7 +237,7 @@ export async function reviewDeadlineExtension(
     if (status === 'accepted') {
       const agreementRef = doc(db, COLLECTIONS.AGREEMENTS, extensionData.agreementId);
       transaction.update(agreementRef, {
-        deadline: extensionData.proposedDeadline,
+        deadline: extensionData.proposeddeadline,
         updatedAt: serverTimestamp()
       });
     }
@@ -245,7 +245,7 @@ export async function reviewDeadlineExtension(
 }
 
 /**
- * Busca todas as extensões de prazo de um acordo
+ * Busca todas as extens?es de prazo de um acordo
  */
 export async function getDeadlineExtensions(agreementId: string): Promise<DeadlineExtension[]> {
   const q = query(
@@ -260,8 +260,8 @@ export async function getDeadlineExtensions(agreementId: string): Promise<Deadli
     return {
       id: doc.id,
       ...data,
-      proposedDeadline: data.proposedDeadline?.toDate?.() || data.proposedDeadline,
-      oldDeadline: data.oldDeadline?.toDate?.() || data.oldDeadline,
+      proposeddeadline: data.proposeddeadline?.toDate?.() || data.proposeddeadline,
+      olddeadline: data.olddeadline?.toDate?.() || data.olddeadline,
       requestedAt: data.requestedAt?.toDate?.() || data.requestedAt,
       respondedAt: data.respondedAt?.toDate?.() || data.respondedAt
     } as DeadlineExtension;
@@ -315,7 +315,7 @@ export async function createAmendment(
     id: amendmentRef.id,
     ...data,
     status: 'pending',
-    createdAt: nowIso
+    createdAt: new Date()
   } as Amendment;
 }
 
@@ -381,10 +381,10 @@ export async function getAmendments(agreementId: string): Promise<Amendment[]> {
   });
 }
 
-// ==================== COBRANÇAS ====================
+// ==================== COBRAN?AS ====================
 
 /**
- * Cria cobrança
+ * Cria cobran?a
  * Gera evento charge_created
  */
 export async function createCharge(
@@ -405,7 +405,7 @@ export async function createCharge(
     actorType: 'freelancer',
     actorName: 'Freelancer',
     actorId: data.createdBy,
-    title: 'Cobrança Gerada',
+    title: 'Cobran?a Gerada',
     description: `Valor: R$ ${data.amount.toFixed(2)} - Vencimento: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`,
     metadata: {
       chargeId: chargeRef.id,
@@ -428,12 +428,12 @@ export async function createCharge(
     id: chargeRef.id,
     ...data,
     status: 'pending',
-    createdAt: nowIso
+    createdAt: new Date()
   } as Charge;
 }
 
 /**
- * Marca cobrança como paga
+ * Marca cobran?a como paga
  * Gera evento charge_paid
  */
 export async function payCharge(
@@ -463,7 +463,7 @@ export async function payCharge(
       actorType: 'client',
       actorName: 'Cliente',
       actorId: paidBy,
-      title: 'Cobrança Paga',
+      title: 'Cobran?a Paga',
       description: `Pagamento de R$ ${chargeData.amount.toFixed(2)} confirmado`,
       metadata: {
         chargeId,
@@ -477,7 +477,7 @@ export async function payCharge(
 }
 
 /**
- * Busca todas as cobranças de um acordo
+ * Busca todas as cobran?as de um acordo
  */
 export async function getCharges(agreementId: string): Promise<Charge[]> {
   const q = query(
@@ -499,10 +499,10 @@ export async function getCharges(agreementId: string): Promise<Charge[]> {
   });
 }
 
-// ==================== NOTIFICAÇÕES ====================
+// ==================== NOTIFICA??ES ====================
 
 /**
- * Envia notificação/notícia
+ * Envia notifica??o/not?cia
  * Gera evento notice_sent
  */
 export async function sendNotice(
@@ -522,7 +522,7 @@ export async function sendNotice(
     actorType: data.sentBy,
     actorName: data.sentBy === 'freelancer' ? 'Freelancer' : 'Cliente',
     actorId: data.senderId,
-    title: 'Notificação Enviada',
+    title: 'Notifica??o Enviada',
     description: data.title,
     metadata: {
       noticeId: noticeRef.id,
@@ -547,7 +547,7 @@ export async function sendNotice(
 }
 
 /**
- * Busca todas as notificações de um acordo
+ * Busca todas as notifica??es de um acordo
  */
 export async function getNotices(agreementId: string): Promise<Notice[]> {
   const q = query(
@@ -569,10 +569,10 @@ export async function getNotices(agreementId: string): Promise<Notice[]> {
   });
 }
 
-// ==================== REPUTAÇÃO ====================
+// ==================== REPUTA??O ====================
 
 /**
- * Atualiza reputação de um usuário em um acordo
+ * Atualiza reputa??o de um usu?rio em um acordo
  */
 export async function updateReputation(
   data: Omit<Reputation, 'id' | 'createdAt' | 'updatedAt'>
@@ -598,7 +598,7 @@ export async function updateReputation(
 }
 
 /**
- * Busca reputação de um usuário
+ * Busca reputa??o de um usu?rio
  */
 export async function getReputation(userId: string, agreementId?: string): Promise<Reputation | null> {
   let q = query(
@@ -665,8 +665,8 @@ export async function createAgreement(
   batch.set(eventRef, eventData);
   await batch.commit();
 
-  // Enviar notificações de convite (email + WhatsApp) em paralelo
-  // Usando allSettled para não falhar se um dos canais falhar
+  // Enviar notifica??es de convite (email + WhatsApp) em paralelo
+  // Usando allSettled para n?o falhar se um dos canais falhar
   const baseUrl = typeof window !== "undefined" 
     ? window.location.origin 
     : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
@@ -698,7 +698,7 @@ export async function createAgreement(
   ];
 
   const [emailResult, whatsappResult] = await Promise.allSettled(notificationPromises);
-  // Log de resultados (não quebra o fluxo)
+  // Log de resultados (n?o quebra o fluxo)
   if (emailResult.status === 'fulfilled') {
     const emailValue = emailResult.value as any;
     if (!emailValue?.skipped) {
@@ -711,7 +711,7 @@ export async function createAgreement(
   if (whatsappResult.status === 'fulfilled') {
     const whatsappValue = whatsappResult.value as any;
     if (whatsappValue?.skipped) {
-      console.log("?? WhatsApp não enviado: telefone não informado");
+      console.log("?? WhatsApp n?o enviado: telefone n?o informado");
     } else if (whatsappValue?.success) {
       console.log("? WhatsApp de convite enviado com sucesso para:", data.clientPhone);
     } else {
@@ -727,16 +727,16 @@ export async function createAgreement(
     protocol,
     clientAccessToken,
     timeline: [],
-    createdAt: nowIso,
-    updatedAt: nowIso
+    createdAt: new Date(),
+    updatedAt: new Date()
   } as Agreement;
 }
 
-// ==================== CONFIRMAÇÃO DIGITAL PÚBLICA ====================
+// ==================== CONFIRMA??O DIGITAL P?BLICA ====================
 
 /**
- * Processa confirmação digital do cliente via link público
- * Atualiza status e registra evento de forma atômica
+ * Processa confirma??o digital do cliente via link p?blico
+ * Atualiza status e registra evento de forma at?mica
  */
 export async function processPublicAgreementConfirmation(
   agreementId: string,
@@ -745,25 +745,25 @@ export async function processPublicAgreementConfirmation(
   const agreementRef = doc(db, COLLECTIONS.AGREEMENTS, agreementId);
   const timestamp = serverTimestamp();
 
-  // Validação defensiva: ler agreement antes de processar
+  // Valida??o defensiva: ler agreement antes de processar
   const agreementSnap = await getDoc(agreementRef);
   if (!agreementSnap.exists()) {
-    throw new Error("Agreement não encontrado.");
+    throw new Error("Agreement n?o encontrado.");
   }
 
   const agreementData = agreementSnap.data();
   if (agreementData.status !== "pending_confirmation") {
-    throw new Error("Este agreement não pode mais ser processado.");
+    throw new Error("Este agreement n?o pode mais ser processado.");
   }
 
-  // Definir dados conforme ação
+  // Definir dados conforme a??o
   const isAccept = action === "accept";
   const newStatus = isAccept ? "confirmed" : "rejected";
   const eventType = isAccept ? "client_confirmed" : "client_contested";
   const title = isAccept ? "Proposta Aceita" : "Proposta Recusada";
   const description = isAccept
-    ? "Cliente aceitou a proposta via link público"
-    : "Cliente recusou a proposta via link público";
+    ? "Cliente aceitou a proposta via link p?blico"
+    : "Cliente recusou a proposta via link p?blico";
 
   // Criar dados do evento
   const eventData = {
@@ -786,7 +786,7 @@ export async function processPublicAgreementConfirmation(
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, eventData);
 
-  // Atualizar reputação do freelancer baseado na ação do cliente
+  // Atualizar reputa??o do freelancer baseado na a??o do cliente
   if (isAccept) {
     await reputationService.recordAgreementCompleted(agreementData.freelancerId);
   } else {
@@ -796,10 +796,10 @@ export async function processPublicAgreementConfirmation(
   await batch.commit();
 }
 
-// ==================== FUNÇÕES UTILITÁRIAS ====================
+// ==================== FUN??ES UTILIT?RIAS ====================
 
 /**
- * Busca estatísticas de um acordo
+ * Busca estat?sticas de um acordo
  */
 export async function getAgreementStats(agreementId: string): Promise<{
   totalCharges: number;
@@ -826,7 +826,7 @@ export { COLLECTIONS };
 
 /**
  * Envia convite de acordo para o cliente via API Route
- * Chamado após criar o acordo com sucesso
+ * Chamado ap?s criar o acordo com sucesso
  */
 export async function sendAgreementInvitationEmail(
   agreementId: string,
@@ -867,7 +867,7 @@ export async function sendAgreementInvitationEmail(
     return { success: true };
   } catch (error) {
     console.error("Falha ao enviar email de convite:", error);
-    // Retorna erro mas não quebra o fluxo
+    // Retorna erro mas n?o quebra o fluxo
     return { 
       success: false, 
       error: error instanceof Error ? error.message : 'Unknown error' 
@@ -877,3 +877,7 @@ export async function sendAgreementInvitationEmail(
 
 
 
+
+
+
+export { transitionStatus } from './agreementStatus';

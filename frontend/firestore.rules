@@ -1,4 +1,3 @@
-﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -9,52 +8,67 @@ service cloud.firestore {
     function isAdmin() {
       return isAuthenticated()
         && exists(/databases/$(database)/documents/users/$(request.auth.uid))
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';       
     }
 
     function isAgreementOwner(agreement) {
       return isAuthenticated() && agreement != null && (
-        agreement.freelancerId == request.auth.uid ||
-        agreement.creditorId == request.auth.uid ||
-        agreement.debtorId == request.auth.uid ||
-        agreement.clientId == request.auth.uid
+        (agreement.freelancerId != null && agreement.freelancerId == request.auth.uid) ||
+        (agreement.creditorId != null && agreement.creditorId == request.auth.uid) ||
+        (agreement.debtorId != null && agreement.debtorId == request.auth.uid) ||
+        (agreement.clientId != null && agreement.clientId == request.auth.uid) ||
+        (agreement.createdBy != null && agreement.createdBy == request.auth.uid) ||
+        (agreement.userId != null && agreement.userId == request.auth.uid)
       );
+    }
 
-    }
     function hasValidClientToken() {
-      return request.resource.data.clientAccessToken == resource.data.clientAccessToken
-        && resource.data.clientAccessToken != null;
+      return request.query.clientAccessToken == resource.data.clientAccessToken
+        && resource.data.clientAccessToken != null
+        && resource.data.clientAccessToken != '';
     }
+
+    function isValidPublicUpdate() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['status', 'updatedAt', 'clientAccessToken', 'formalizedAt', 'formalizedBy']);        
+    }
+
     match /users/{userId} {
       allow read: if isAuthenticated();
-
       allow create, update: if isAuthenticated() && request.auth.uid == userId || isAdmin();
       allow delete: if isAdmin();
     }
 
     match /agreements/{agreementId} {
-      allow read: if isAuthenticated();
-      
+      allow read: if isAuthenticated() || hasValidClientToken();
+
       allow create: if isAuthenticated() && (
-        request.resource.data.freelancerId == request.auth.uid ||
-        request.resource.data.creditorId == request.auth.uid ||
-        request.resource.data.debtorId == request.auth.uid ||
+        (request.resource.data.freelancerId == request.auth.uid) ||
+        (request.resource.data.creditorId == request.auth.uid) ||
+        (request.resource.data.debtorId == request.auth.uid) ||
+        (request.resource.data.createdBy == request.auth.uid) ||
+        (request.resource.data.userId == request.auth.uid) ||
         isAdmin()
       );
 
+      allow update: if
+        isAdmin()
+        || isAgreementOwner(resource.data)
+        || isAgreementOwner(request.resource.data)
+        || (resource.data.createdBy == request.auth.uid)
+        || (resource.data.userId == request.auth.uid)
+        || (request.resource.data.createdBy == request.auth.uid)
+        || (request.resource.data.userId == request.auth.uid)
+        || (hasValidClientToken() && isValidPublicUpdate());
 
-      allow update: if isAgreementOwner(resource.data) || isAdmin();
       allow delete: if isAdmin();
     }
 
     match /agreement_events/{eventId} {
-
       allow read: if isAuthenticated();
-
       allow create: if isAuthenticated() && (
         request.resource.data.actorId == request.auth.uid || isAdmin()
       );
-
       allow update, delete: if isAdmin();
     }
 

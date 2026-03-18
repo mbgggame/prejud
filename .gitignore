@@ -1,0 +1,16 @@
+
+# Arquivos temporarios do Office
+~$*.*
+*.tmp
+*.temp
+*.bak
+*.backup
+
+
+# Credenciais e segredos
+service-account.json
+*.key
+*.pem
+.env.local
+.env.*.local
+

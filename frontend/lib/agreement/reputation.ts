@@ -84,7 +84,7 @@ export const calculateReputationImpact = (
   }
 
   // Disputa iniciada
-  if (toStatus === 'in_dispute' || toStatus === 'contested' || toStatus === 'charge_contested') {
+  if (toStatus === 'in_dispute') {
     return {
       type: 'negative',
       factor: NEGATIVE_FACTORS.DISPUTE_STARTED.factor,

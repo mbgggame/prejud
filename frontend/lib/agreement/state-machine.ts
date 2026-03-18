@@ -1,5 +1,5 @@
-﻿// ==========================================
-// MÃQUINA DE ESTADOS DO ACORDO - PREJUD
+// ==========================================
+// MAQUINA DE ESTADOS DO ACORDO - PREJUD
 // ==========================================
 
 import { 
@@ -11,7 +11,7 @@ import {
 } from "@/types/agreement";
 
 // ==========================================
-// DEFINIÃ‡ÃƒO DE TODOS OS ESTADOS E PERMISSÃ•ES
+// DEFINICAO DE TODOS OS ESTADOS E PERMISSOES
 // ==========================================
 
 export const agreementStateMachine: Record<AgreementStatus, StatePermissions> = {
@@ -23,36 +23,36 @@ export const agreementStateMachine: Record<AgreementStatus, StatePermissions> = 
     freelancer: ["edit_agreement", "send_invitation"],
     client: [],
     blocked: [
-      "CobranÃ§a sÃ³ pode ser criada apÃ³s confirmaÃ§Ã£o do acordo",
-      "NotificaÃ§Ã£o sÃ³ pode ser emitida com base formalizada",
-      "ProrrogaÃ§Ã£o sÃ³ disponÃ­vel apÃ³s confirmaÃ§Ã£o",
-      "Aditivo sÃ³ disponÃ­vel apÃ³s confirmaÃ§Ã£o"
+      "Cobranca so pode ser criada apos confirmacao do acordo",
+      "Notificacao so pode ser emitida com base formalizada",
+      "Prorrogacao so disponivel apos confirmacao",
+      "Aditivo so disponivel apos confirmacao"
     ],
     statusLabel: "Rascunho",
     statusColor: "bg-yellow-500/10 text-yellow-400 border-yellow-500/20",
-    description: "Acordo em ediÃ§Ã£o. Envie o convite quando estiver pronto."
+    description: "Acordo em edicao. Envie o convite quando estiver pronto."
   },
 
   // ==========================================
-  // 2. AGUARDANDO CONFIRMAÃ‡ÃƒO
+  // 2. AGUARDANDO CONFIRMACAO
   // ==========================================
-  pending_confirmation: {
+  pending_client_confirmation: {
     freelancer: ["view_history"],
     client: ["confirm_agreement", "contest_agreement", "not_recognize"],
     blocked: [
-      "CobranÃ§a bloqueada atÃ© confirmaÃ§Ã£o",
-      "NotificaÃ§Ã£o bloqueada atÃ© confirmaÃ§Ã£o",
-      "ProrrogaÃ§Ã£o bloqueada atÃ© confirmaÃ§Ã£o",
-      "Aditivo bloqueado atÃ© confirmaÃ§Ã£o",
-      "EdiÃ§Ã£o bloqueada - aguardando resposta do cliente"
+      "Cobranca bloqueada ate confirmacao",
+      "Notificacao bloqueada ate confirmacao",
+      "Prorrogacao bloqueada ate confirmacao",
+      "Aditivo bloqueado ate confirmacao",
+      "Edicao bloqueada - aguardando resposta do cliente"
     ],
-    statusLabel: "Aguardando ConfirmaÃ§Ã£o",
+    statusLabel: "Aguardando Confirmacao",
     statusColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
     description: "Convite enviado ao cliente. Aguardando resposta."
   },
 
   // ==========================================
-  // 3. CONFIRMADO (ESTADO BASE ATIVO)
+  // 3. ATIVO (CONFIRMADO)
   // ==========================================
   confirmed: {
     freelancer: [
@@ -65,47 +65,32 @@ export const agreementStateMachine: Record<AgreementStatus, StatePermissions> = 
     ],
     client: ["view_history"],
     blocked: [
-      "Nenhuma aÃ§Ã£o bloqueada - acordo ativo"
+      "Nenhuma acao bloqueada - acordo ativo"
     ],
     statusLabel: "Confirmado",
     statusColor: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
-    description: "Acordo ativo. Todas as aÃ§Ãµes disponÃ­veis."
+    description: "Acordo ativo. Todas as acoes disponiveis."
   },
 
   // ==========================================
-  // 4. CONTESTADO
+  // 4. EM DISPUTA
   // ==========================================
-  contested: {
+  in_dispute: {
     freelancer: ["view_history"],
     client: ["view_history"],
     blocked: [
-      "CobranÃ§a bloqueada - acordo contestado",
-      "NotificaÃ§Ã£o bloqueada - resolver contestaÃ§Ã£o primeiro",
-      "ProrrogaÃ§Ã£o bloqueada - resolver contestaÃ§Ã£o primeiro",
-      "Aditivo bloqueado - resolver contestaÃ§Ã£o primeiro"
+      "Cobranca bloqueada - acordo em disputa",
+      "Notificacao bloqueada - resolver disputa primeiro",
+      "Prorrogacao bloqueada - resolver disputa primeiro",
+      "Aditivo bloqueado - resolver disputa primeiro"
     ],
-    statusLabel: "Contestado",
-    statusColor: "bg-red-500/10 text-red-400 border-red-500/20",
-    description: "Cliente contestou o acordo. NecessÃ¡rio ajuste."
+    statusLabel: "Em Disputa",
+    statusColor: "bg-red-500/20 text-red-400 border-red-500/30",
+    description: "Caso em disputa. Aguardando resolucao."
   },
 
   // ==========================================
-  // 5. EM AJUSTE
-  // ==========================================
-  in_adjustment: {
-    freelancer: ["edit_agreement", "send_invitation"],
-    client: ["view_history"],
-    blocked: [
-      "CobranÃ§a bloqueada durante ajuste",
-      "NotificaÃ§Ã£o bloqueada durante ajuste"
-    ],
-    statusLabel: "Em Ajuste",
-    statusColor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    description: "Acordo sendo ajustado apÃ³s contestaÃ§Ã£o."
-  },
-
-  // ==========================================
-  // 6. PRORROGAÃ‡ÃƒO PENDENTE
+  // 5. PRORROGACAO PENDENTE
   // ==========================================
   deadline_extension_pending: {
     freelancer: ["view_history"],
@@ -115,18 +100,18 @@ export const agreementStateMachine: Record<AgreementStatus, StatePermissions> = 
       "reject_deadline_extension"
     ],
     blocked: [
-      "Nova prorrogaÃ§Ã£o bloqueada - jÃ¡ existe uma pendente",
-      "Novo aditivo bloqueado - resolver prorrogaÃ§Ã£o primeiro",
-      "CobranÃ§a automÃ¡tica bloqueada - aguardando resposta",
-      "NotificaÃ§Ã£o automÃ¡tica bloqueada - aguardando resposta"
+      "Nova prorrogacao bloqueada - ja existe uma pendente",
+      "Novo aditivo bloqueado - resolver prorrogacao primeiro",
+      "Cobranca automatica bloqueada - aguardando resposta",
+      "Notificacao automatica bloqueada - aguardando resposta"
     ],
-    statusLabel: "ProrrogaÃ§Ã£o Pendente",
+    statusLabel: "Prorrogacao Pendente",
     statusColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
-    description: "Aguardando resposta do cliente sobre prorrogaÃ§Ã£o."
+    description: "Aguardando resposta do cliente sobre prorrogacao."
   },
 
   // ==========================================
-  // 7. ADITIVO PENDENTE
+  // 6. ADITIVO PENDENTE
   // ==========================================
   amendment_pending: {
     freelancer: ["view_history"],
@@ -136,10 +121,10 @@ export const agreementStateMachine: Record<AgreementStatus, StatePermissions> = 
       "reject_amendment"
     ],
     blocked: [
-      "Nova prorrogaÃ§Ã£o bloqueada - resolver aditivo primeiro",
-      "Novo aditivo bloqueado - jÃ¡ existe um pendente",
-      "CobranÃ§a automÃ¡tica bloqueada - aguardando resposta",
-      "NotificaÃ§Ã£o automÃ¡tica bloqueada - aguardando resposta"
+      "Nova prorrogacao bloqueada - resolver aditivo primeiro",
+      "Novo aditivo bloqueado - ja existe um pendente",
+      "Cobranca automatica bloqueada - aguardando resposta",
+      "Notificacao automatica bloqueada - aguardando resposta"
     ],
     statusLabel: "Aditivo Pendente",
     statusColor: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
@@ -147,142 +132,163 @@ export const agreementStateMachine: Record<AgreementStatus, StatePermissions> = 
   },
 
   // ==========================================
-  // 8. COBRANÃ‡A ABERTA
+  // 7. COBRANCA PENDENTE
   // ==========================================
   charge_open: {
     freelancer: ["send_notice", "view_history"],
     client: ["report_payment", "contest_charge"],
     blocked: [
-      "Nova cobranÃ§a bloqueada - jÃ¡ existe cobranÃ§a aberta"
+      "Nova cobranca bloqueada - ja existe cobranca aberta"
     ],
-    statusLabel: "CobranÃ§a em Aberto",
+    statusLabel: "Cobranca em Aberto",
     statusColor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    description: "CobranÃ§a aguardando pagamento ou resposta."
+    description: "Cobranca aguardando pagamento ou resposta."
   },
 
   // ==========================================
-  // 9. COBRANÃ‡A CONTESTADA
+  // 8. REJEITADO
   // ==========================================
-  charge_contested: {
-    freelancer: ["send_notice", "view_history"],
+  rejected: {
+    freelancer: ["view_history"],
     client: ["view_history"],
     blocked: [
-      "Nova cobranÃ§a bloqueada - resolver contestaÃ§Ã£o primeiro",
-      "ProrrogaÃ§Ã£o bloqueada - resolver contestaÃ§Ã£o primeiro"
+      "TODAS AS ACOES BLOQUEADAS - Acordo rejeitado",
+      "Cobranca bloqueada",
+      "Notificacao bloqueada",
+      "Prorrogacao bloqueada",
+      "Aditivo bloqueado",
+      "Edicao bloqueada"
     ],
-    statusLabel: "CobranÃ§a Contestada",
+    statusLabel: "Rejeitado",
     statusColor: "bg-red-500/10 text-red-400 border-red-500/20",
-    description: "Cliente contestou a cobranÃ§a. Aguardando resoluÃ§Ã£o."
+    description: "Acordo rejeitado pelo cliente. Apenas consulta disponivel."
   },
 
   // ==========================================
-  // 10. NOTIFICAÃ‡ÃƒO ENVIADA
+  // 9. CONTESTADO
+  // ==========================================
+  contested: {
+    freelancer: ["view_history"],
+    client: ["view_history"],
+    blocked: [
+      "TODAS AS ACOES BLOQUEADAS - Acordo contestado",
+      "Cobranca bloqueada",
+      "Notificacao bloqueada",
+      "Prorrogacao bloqueada",
+      "Aditivo bloqueado",
+      "Edicao bloqueada"
+    ],
+    statusLabel: "Contestado",
+    statusColor: "bg-orange-500/10 text-orange-400 border-orange-500/20",
+    description: "Acordo contestado. Apenas consulta disponivel."
+  },
+
+  // ==========================================
+  // 10. EM AJUSTE
+  // ==========================================
+  in_adjustment: {
+    freelancer: ["view_history"],
+    client: ["view_history"],
+    blocked: [
+      "TODAS AS ACOES BLOQUEADAS - Acordo em ajuste",
+      "Cobranca bloqueada",
+      "Notificacao bloqueada",
+      "Prorrogacao bloqueada",
+      "Aditivo bloqueado",
+      "Edicao bloqueada"
+    ],
+    statusLabel: "Em Ajuste",
+    statusColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    description: "Acordo em ajuste. Apenas consulta disponivel."
+  },
+
+  // ==========================================
+  // 11. COBRANCA CONTESTADA
+  // ==========================================
+  charge_contested: {
+    freelancer: ["view_history"],
+    client: ["view_history"],
+    blocked: [
+      "TODAS AS ACOES BLOQUEADAS - Cobranca contestada",
+      "Nova cobranca bloqueada",
+      "Notificacao bloqueada",
+      "Prorrogacao bloqueada",
+      "Aditivo bloqueado",
+      "Edicao bloqueada"
+    ],
+    statusLabel: "Cobranca Contestada",
+    statusColor: "bg-red-600/10 text-red-500 border-red-600/20",
+    description: "Cobranca contestada. Apenas consulta disponivel."
+  },
+
+  // ==========================================
+  // 12. NOTIFICACAO ENVIADA
   // ==========================================
   notice_sent: {
     freelancer: ["view_history"],
-    client: ["respond_notice"],
+    client: ["view_history", "respond_notice"],
     blocked: [
-      "Nova notificaÃ§Ã£o bloqueada - aguardando resposta da notificaÃ§Ã£o atual"
+      "Nova notificacao bloqueada - aguardando resposta",
+      "Cobranca bloqueada",
+      "Prorrogacao bloqueada",
+      "Aditivo bloqueado",
+      "Edicao bloqueada"
     ],
-    statusLabel: "NotificaÃ§Ã£o Enviada",
-    statusColor: "bg-blue-500/10 text-blue-400 border-blue-500/20",
-    description: "NotificaÃ§Ã£o formal enviada. Aguardando resposta."
+    statusLabel: "Notificacao Enviada",
+    statusColor: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+    description: "Notificacao enviada. Aguardando resposta do cliente."
   },
 
   // ==========================================
-  // 11. EM DISPUTA (NÃƒO RECONHECIDO)
-  // ==========================================
-  in_dispute: {
-    freelancer: ["view_history"],
-    client: ["view_history"],
-    blocked: [
-      "TODAS AS AÃ‡Ã•ES BLOQUEADAS - Caso em disputa",
-      "CobranÃ§a bloqueada",
-      "NotificaÃ§Ã£o bloqueada",
-      "ProrrogaÃ§Ã£o bloqueada",
-      "Aditivo bloqueado"
-    ],
-    statusLabel: "Em Disputa",
-    statusColor: "bg-red-500/20 text-red-400 border-red-500/30",
-    description: "Cliente nÃ£o reconhece o acordo. Caso em revisÃ£o."
-  },
-
-  // ==========================================
-  // 12. ENCERRADO
+  // 13. ENCERRADO
   // ==========================================
   closed: {
     freelancer: ["view_history"],
     client: ["view_history"],
     blocked: [
-      "TODAS AS AÃ‡Ã•ES BLOQUEADAS - Caso encerrado",
-      "CobranÃ§a bloqueada",
-      "NotificaÃ§Ã£o bloqueada",
-      "ProrrogaÃ§Ã£o bloqueada",
+      "TODAS AS ACOES BLOQUEADAS - Caso encerrado",
+      "Cobranca bloqueada",
+      "Notificacao bloqueada",
+      "Prorrogacao bloqueada",
       "Aditivo bloqueado",
-      "EdiÃ§Ã£o bloqueada"
+      "Edicao bloqueada"
     ],
     statusLabel: "Encerrado",
     statusColor: "bg-gray-500/10 text-gray-400 border-gray-500/20",
-    description: "Caso encerrado. Apenas consulta disponÃ­vel."
+    description: "Caso encerrado. Apenas consulta disponivel."
   }
 };
 
 // ==========================================
-// FUNÃ‡Ã•ES AUXILIARES
+// FUNCOES AUXILIARES
 // ==========================================
 
-/**
- * Verifica se uma aÃ§Ã£o Ã© permitida para o freelancer no estado atual
- */
-export function canFreelancerAction(
-  status: AgreementStatus, 
-  action: FreelancerAction
-): boolean {
-  const state = agreementStateMachine[status];
-  return state.freelancer.includes(action);
+export function canFreelancerAction(status: AgreementStatus, action: FreelancerAction): boolean {
+  return agreementStateMachine[status].freelancer.includes(action);
 }
 
-/**
- * Verifica se uma aÃ§Ã£o Ã© permitida para o cliente no estado atual
- */
-export function canClientAction(
-  status: AgreementStatus, 
-  action: ClientAction
-): boolean {
-  const state = agreementStateMachine[status];
-  return state.client.includes(action);
+export function canClientAction(status: AgreementStatus, action: ClientAction): boolean {
+  return agreementStateMachine[status].client.includes(action);
 }
 
-/**
- * Retorna a lista de bloqueios do estado atual
- */
 export function getBlockedActions(status: AgreementStatus): string[] {
   return agreementStateMachine[status].blocked;
 }
 
-/**
- * Retorna o label amigÃ¡vel do status
- */
 export function getStatusLabel(status: AgreementStatus): string {
   return agreementStateMachine[status].statusLabel;
 }
 
-/**
- * Retorna as classes de cor do status
- */
 export function getStatusColorClasses(status: AgreementStatus): string {
   return agreementStateMachine[status].statusColor;
 }
 
-/**
- * Retorna a descriÃ§Ã£o do status
- */
 export function getStatusDescription(status: AgreementStatus): string {
   return agreementStateMachine[status].description;
 }
 
 // ==========================================
-// TRANSIÃ‡Ã•ES VÃLidas DE ESTADO
+// TRANSICOES VALIDAS DE ESTADO
 // ==========================================
 
 export interface StateTransition {
@@ -294,67 +300,33 @@ export interface StateTransition {
 }
 
 export const validTransitions: StateTransition[] = [
-  // CriaÃ§Ã£o e envio
-  { from: "draft", to: "pending_confirmation", action: "send_invitation", actor: "freelancer", eventType: "invitation_sent" },
-  
-  // Respostas do cliente (confirmaÃ§Ã£o inicial)
-  { from: "pending_confirmation", to: "confirmed", action: "confirm_agreement", actor: "client", eventType: "client_confirmed" },
-  { from: "pending_confirmation", to: "contested", action: "contest_agreement", actor: "client", eventType: "client_contested" },
-  { from: "pending_confirmation", to: "in_dispute", action: "not_recognize", actor: "client", eventType: "dispute_opened" },
-  
-  // Ajuste apÃ³s contestaÃ§Ã£o
-  { from: "contested", to: "in_adjustment", action: "start_adjustment", actor: "freelancer", eventType: "agreement_updated" },
-  { from: "in_adjustment", to: "pending_confirmation", action: "send_invitation", actor: "freelancer", eventType: "invitation_sent" },
-  
-  // ProrrogaÃ§Ã£o de prazo
+  { from: "draft", to: "pending_client_confirmation", action: "send_invitation", actor: "freelancer", eventType: "invitation_sent" },
+  { from: "pending_client_confirmation", to: "confirmed", action: "confirm_agreement", actor: "client", eventType: "client_confirmed" },
+  { from: "pending_client_confirmation", to: "in_dispute", action: "contest_agreement", actor: "client", eventType: "client_contested" },
+  { from: "pending_client_confirmation", to: "in_dispute", action: "not_recognize", actor: "client", eventType: "dispute_opened" },
+  { from: "in_dispute", to: "confirmed", action: "start_adjustment", actor: "freelancer", eventType: "agreement_updated" },
   { from: "confirmed", to: "deadline_extension_pending", action: "request_deadline_extension", actor: "freelancer", eventType: "deadline_extension_requested" },
   { from: "deadline_extension_pending", to: "confirmed", action: "accept_deadline_extension", actor: "client", eventType: "deadline_extension_accepted" },
   { from: "deadline_extension_pending", to: "deadline_extension_pending", action: "counter_propose_deadline", actor: "client", eventType: "deadline_extension_counter_proposed" },
-  { from: "deadline_extension_pending", to: "in_adjustment", action: "reject_deadline_extension", actor: "client", eventType: "deadline_extension_rejected" },
-  
-  // Aditivo
+  { from: "deadline_extension_pending", to: "in_dispute", action: "reject_deadline_extension", actor: "client", eventType: "deadline_extension_rejected" },
   { from: "confirmed", to: "amendment_pending", action: "create_amendment", actor: "freelancer", eventType: "amendment_created" },
   { from: "amendment_pending", to: "confirmed", action: "accept_amendment", actor: "client", eventType: "amendment_accepted" },
-  { from: "amendment_pending", to: "in_adjustment", action: "request_amendment_adjustment", actor: "client", eventType: "amendment_adjustment_requested" },
-  { from: "amendment_pending", to: "in_adjustment", action: "reject_amendment", actor: "client", eventType: "amendment_rejected" },
-  
-  // CobranÃ§a
+  { from: "amendment_pending", to: "in_dispute", action: "request_amendment_adjustment", actor: "client", eventType: "amendment_adjustment_requested" },
+  { from: "amendment_pending", to: "in_dispute", action: "reject_amendment", actor: "client", eventType: "amendment_rejected" },
   { from: "confirmed", to: "charge_open", action: "create_charge", actor: "freelancer", eventType: "charge_created" },
-  { from: "charge_open", to: "confirmed", action: "report_payment", actor: "client", eventType: "charge_paid" },
-  { from: "charge_open", to: "charge_contested", action: "contest_charge", actor: "client", eventType: "charge_contested" },
-  
-  // NotificaÃ§Ã£o
-  { from: "confirmed", to: "notice_sent", action: "send_notice", actor: "freelancer", eventType: "notice_sent" },
-  { from: "charge_open", to: "notice_sent", action: "send_notice", actor: "freelancer", eventType: "notice_sent" },
-  { from: "charge_contested", to: "notice_sent", action: "send_notice", actor: "freelancer", eventType: "notice_sent" },
-  { from: "notice_sent", to: "confirmed", action: "respond_notice", actor: "client", eventType: "notice_responded" },
-  
-  // Encerramento
+  { from: "charge_open", to: "closed", action: "report_payment", actor: "client", eventType: "charge_paid" },
+  { from: "charge_open", to: "in_dispute", action: "contest_charge", actor: "client", eventType: "charge_contested" },
+  { from: "confirmed", to: "confirmed", action: "send_notice", actor: "freelancer", eventType: "notice_sent" },
+  { from: "charge_open", to: "confirmed", action: "send_notice", actor: "freelancer", eventType: "notice_sent" },
+  { from: "in_dispute", to: "confirmed", action: "send_notice", actor: "freelancer", eventType: "notice_sent" },
+  { from: "confirmed", to: "confirmed", action: "respond_notice", actor: "client", eventType: "notice_responded" },
   { from: "confirmed", to: "closed", action: "close_case", actor: "freelancer", eventType: "case_closed" }
 ];
 
-/**
- * Verifica se uma transiÃ§Ã£o de estado Ã© vÃ¡lida
- */
-export function isValidTransition(
-  from: AgreementStatus,
-  to: AgreementStatus,
-  actor: "freelancer" | "client"
-): boolean {
-  return validTransitions.some(
-    t => t.from === from && t.to === to && t.actor === actor
-  );
+export function isValidTransition(from: AgreementStatus, to: AgreementStatus, actor: "freelancer" | "client"): boolean {
+  return validTransitions.some(t => t.from === from && t.to === to && t.actor === actor);
 }
 
-/**
- * Retorna as transiÃ§Ãµes possÃ­veis a partir de um estado
- */
-export function getPossibleTransitions(
-  status: AgreementStatus,
-  actor: "freelancer" | "client"
-): StateTransition[] {
-  return validTransitions.filter(
-    t => t.from === status && t.actor === actor
-  );
+export function getPossibleTransitions(status: AgreementStatus, actor: "freelancer" | "client"): StateTransition[] {
+  return validTransitions.filter(t => t.from === status && t.actor === actor);
 }
-

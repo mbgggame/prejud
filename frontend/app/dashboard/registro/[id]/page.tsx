@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -37,7 +37,7 @@ import {
 
 type AgreementStatus =
   | "draft"
-  | "pending_confirmation"
+  | "pending_client_confirmation"
   | "confirmed"
   | "contested"
   | "in_adjustment"
@@ -65,6 +65,7 @@ interface Agreement {
   status: AgreementStatus;
   protocol: string;
   hash?: string;
+  clientAccessToken?: string;
   createdAt: string | Timestamp;
   updatedAt: string | Timestamp;
   paymentModel?: string;
@@ -123,7 +124,7 @@ function formatDatePtBr(date: string | Timestamp | Date | undefined): string {
 function getStatusLabel(status: AgreementStatus): string {
   const labels: Record<AgreementStatus, string> = {
     draft: "Rascunho",
-    pending_confirmation: "Aguardando Confirmação",
+    pending_client_confirmation: "Aguardando Confirmação",
     confirmed: "Confirmado",
     contested: "Contestado",
     in_adjustment: "Em Ajuste",
@@ -142,7 +143,7 @@ function getStatusColor(status: AgreementStatus): string {
   switch (status) {
     case "draft":
       return "bg-yellow-500/10 border-yellow-500/20 text-yellow-400";
-    case "pending_confirmation":
+    case "pending_client_confirmation":
       return "bg-blue-500/10 border-blue-500/20 text-blue-400";
     case "confirmed":
       return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
@@ -299,7 +300,10 @@ export default function RegistroPage() {
   // ==========================================
 
   async function handleCopyLink() {
-    if (!agreement?.protocol) return;
+    if (!agreement?.protocol || !agreement?.clientAccessToken) {
+      setCopyError('Este regordo não possui link público seguro disponível.');
+      return;
+    }
 
     try {
       const publicUrl = `${window.location.origin}/p/${encodeURIComponent(agreement.protocol)}?t=${agreement.clientAccessToken}`;
@@ -315,7 +319,7 @@ export default function RegistroPage() {
   }
 
   function handleOpenPublic() {
-    if (!agreement?.protocol) return;
+    if (!agreement?.protocol || !agreement?.clientAccessToken) return;
     const publicUrl = `${window.location.origin}/p/${encodeURIComponent(agreement.protocol)}?t=${agreement.clientAccessToken}`;
     window.open(publicUrl, '_blank');
   }

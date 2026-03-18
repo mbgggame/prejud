@@ -1,4 +1,4 @@
-﻿/**
+/**
  * TYPES/AGREEMENT.TS
  * 
  * Fonte unica de verdade do dominio Agreement no PreJud.
@@ -10,7 +10,7 @@
 
 export type AgreementStatus =
   | "draft"
-  | "pending_confirmation"
+  | "pending_client_confirmation"
   | "confirmed"
   | "rejected"
   | "contested"
@@ -22,6 +22,8 @@ export type AgreementStatus =
   | "notice_sent"
   | "in_dispute"
   | "closed";
+
+export type ServiceType = string;
 
 // ============================================================================
 // TIPOS DE EVENTOS DA TIMELINE
@@ -65,10 +67,34 @@ export interface TimelineEvent {
   actorType: ActorType;
   actorName: string;
   actorId?: string;
-  createdAt: string;
+  createdAt: Date;
   title: string;
   description: string;
   metadata?: Record<string, any>;
+}
+
+// ============================================================================
+// INTERFACE DO ACORDO
+// ============================================================================
+
+// ============================================================================
+// DTO PARA CRIACAO DE ACORDO
+// ============================================================================
+
+export interface CreateAgreementDTO {
+  title: string;
+  freelancerId: string;
+  freelancerName: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone?: string;
+  clientDocument?: string;
+  clientId?: string;
+  serviceType: string;
+  description: string;
+  value: number;
+  deadline: Date;
+  terms: string;
 }
 
 // ============================================================================
@@ -82,17 +108,20 @@ export interface Agreement {
   freelancerName: string;
   clientName: string;
   clientEmail: string;
+  clientPhone?: string;
   clientDocument?: string;
+  clientId?: string;
   serviceType: string;
   description: string;
-  value: string;
-  deadline: string;
+  value: number;
+  deadline: Date;
   terms: string;
   status: AgreementStatus;
   protocol: string;
   hash?: string;
-  createdAt: string;
-  updatedAt: string;
+  clientAccessToken?: string;
+  createdAt: Date;
+  updatedAt: Date;
   timeline: TimelineEvent[];
 }
 
@@ -147,10 +176,10 @@ export type DeadlineExtensionStatus = "pending" | "accepted" | "rejected" | "cou
 export interface DeadlineExtension {
   id: string;
   agreementId: string;
-  requestedBy: "freelancer" | "client";
+  requestedBy: ActorType;
   requesterId: string;
-  oldDeadline: string;
-  proposedDeadline: string;
+  olddeadline: Date;
+  proposeddeadline: Date;
   reason: string;
   status: DeadlineExtensionStatus;
   requestedAt: string;
@@ -161,7 +190,7 @@ export interface DeadlineExtension {
 
 export interface CreateDeadlineExtensionDTO {
   agreementId: string;
-  proposedDeadline: string;
+  proposeddeadline: Date;
   reason: string;
 }
 
@@ -181,7 +210,7 @@ export interface Amendment {
     terms?: string;
     serviceType?: string;
   };
-  createdAt: string;
+  createdAt: Date;
   createdBy: "freelancer" | "client";
   creatorId: string;
   status: AmendmentStatus;
@@ -214,7 +243,7 @@ export interface Charge {
   description: string;
   dueDate: string;
   status: ChargeStatus;
-  createdAt: string;
+  createdAt: Date;
   createdBy: string;
   paidAt?: string;
   paidAmount?: number;
