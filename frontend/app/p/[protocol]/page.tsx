@@ -2,7 +2,7 @@
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAgreementByProtocol, processPublicAgreementConfirmation } from "@/services/firebaseAgreementService";
+import { getAgreementByProtocolOrId, processPublicAgreementConfirmation } from "@/services/firebaseAgreementService";
 import { Agreement } from "@/types/agreement";
 import Link from "next/link";
 import { Loader2, AlertCircle, CheckCircle, XCircle, Shield, FileText, User, Mail, DollarSign, Calendar } from "lucide-react";
@@ -25,7 +25,7 @@ export default function PublicAgreementPage() {
       try {
         setLoading(true);
         // Busca acordo pelo protocolo
-        const data = await getAgreementByProtocol(protocol);
+        const data = await getAgreementByProtocolOrId(protocol);
         if (!data) {
           setError("Acordo nao encontrado ou link invalido");
           return;

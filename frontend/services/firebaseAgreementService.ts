@@ -903,3 +903,19 @@ export async function getAgreementByProtocol(protocol: string): Promise<Agreemen
   } as Agreement;
 }
 
+
+
+// ==================== BUSCA POR PROTOCOLO OU ID ====================
+
+/**
+ * Busca acordo por protocolo ou ID (para acesso publico)
+ * Tenta primeiro por protocolo, depois por ID se nao encontrar
+ */
+export async function getAgreementByProtocolOrId(protocolOrId: string): Promise<Agreement | null> {
+  // Tenta buscar por protocolo primeiro
+  const byProtocol = await getAgreementByProtocol(protocolOrId);
+  if (byProtocol) return byProtocol;
+  
+  // Se nao encontrar, tenta buscar por ID
+  return await getAgreementById(protocolOrId);
+}
