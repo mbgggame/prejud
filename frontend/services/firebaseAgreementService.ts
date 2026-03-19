@@ -748,7 +748,7 @@ export async function processPublicAgreementConfirmation(
   }
 
   const agreementData = agreementSnap.data();
-  if (agreementData.status !== "pending_confirmation") {
+  if (agreementData.status !== "pending_client_confirmation") {
     throw new Error("Este agreement n?o pode mais ser processado.");
   }
 
