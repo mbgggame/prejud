@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAgreementByProtocolOrId, processPublicAgreementConfirmation } from "@/services/firebaseAgreementService";
 import { Agreement } from "@/types/agreement";
+import { Timeline } from "@/components/Timeline";
 import Link from "next/link";
 import { Loader2, AlertCircle, CheckCircle, XCircle, Shield, FileText, User, Mail, DollarSign, Calendar } from "lucide-react";
 
@@ -245,6 +246,11 @@ export default function PublicAgreementPage() {
             </div>
           </div>
         </div>
+        {agreement.timeline && agreement.timeline.length > 0 && (
+          <div className="max-w-2xl mx-auto mt-8">
+            <Timeline events={agreement.timeline} />
+          </div>
+        )}
       </main>
     </div>
   );

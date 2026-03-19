@@ -55,3 +55,19 @@ export function generateId(): string {
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+/**
+ * Formata data relativa (ex: 'ha 2 horas', 'ha 3 dias')
+ */
+export function formatDistanceToNow(date: Date | string): string {
+  const now = new Date();
+  const past = new Date(date);
+  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return 'ha poucos segundos';
+  if (diffInSeconds < 3600) return 'ha ' + Math.floor(diffInSeconds / 60) + ' minutos';
+  if (diffInSeconds < 86400) return 'ha ' + Math.floor(diffInSeconds / 3600) + ' horas';
+  if (diffInSeconds < 2592000) return 'ha ' + Math.floor(diffInSeconds / 86400) + ' dias';
+  if (diffInSeconds < 31536000) return 'ha ' + Math.floor(diffInSeconds / 2592000) + ' meses';
+  return 'ha ' + Math.floor(diffInSeconds / 31536000) + ' anos';
+}
