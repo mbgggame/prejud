@@ -60,14 +60,12 @@ export function sleep(ms: number): Promise<void> {
  * Formata data relativa (ex: 'ha 2 horas', 'ha 3 dias')
  */
 export function formatDistanceToNow(date: Date | string): string {
-  const now = new Date();
-  const past = new Date(date);
-  const diffInSeconds = Math.floor((now.getTime() - past.getTime()) / 1000);
+  const d = new Date(date);
+  const dia = d.getDate().toString().padStart(2, '0');
+  const mes = (d.getMonth() + 1).toString().padStart(2, '0');
+  const ano = d.getFullYear();
+  const hora = d.getHours().toString().padStart(2, '0');
+  const minuto = d.getMinutes().toString().padStart(2, '0');
   
-  if (diffInSeconds < 60) return 'ha poucos segundos';
-  if (diffInSeconds < 3600) return 'ha ' + Math.floor(diffInSeconds / 60) + ' minutos';
-  if (diffInSeconds < 86400) return 'ha ' + Math.floor(diffInSeconds / 3600) + ' horas';
-  if (diffInSeconds < 2592000) return 'ha ' + Math.floor(diffInSeconds / 86400) + ' dias';
-  if (diffInSeconds < 31536000) return 'ha ' + Math.floor(diffInSeconds / 2592000) + ' meses';
-  return 'ha ' + Math.floor(diffInSeconds / 31536000) + ' anos';
+  return dia + '/' + mes + '/' + ano + ' ' + hora + ':' + minuto;
 }
