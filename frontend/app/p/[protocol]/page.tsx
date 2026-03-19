@@ -1,12 +1,26 @@
-"use client";
+﻿"use client";
 
 import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAgreementByProtocolOrId, processPublicAgreementConfirmation } from "@/services/firebaseAgreementService";
+import {
+  getAgreementByProtocolOrId,
+  processPublicAgreementConfirmation,
+} from "@/services/firebaseAgreementService";
 import { Agreement } from "@/types/agreement";
 import { Timeline } from "@/components/Timeline";
 import Link from "next/link";
-import { Loader2, AlertCircle, CheckCircle, XCircle, Shield, FileText, User, Mail, DollarSign, Calendar } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+  XCircle,
+  Shield,
+  FileText,
+  User,
+  Mail,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
 
 export default function PublicAgreementPage() {
   const params = useParams();
@@ -14,7 +28,8 @@ export default function PublicAgreementPage() {
   const [agreement, setAgreement] = useState<Agreement | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState(false);
+  const [confirmLoading, setConfirmLoading] = useState(false);
+  const [contestLoading, setContestLoading] = useState(false);
 
   const protocol = params.protocol as string;
   const token = searchParams.get("t");
@@ -25,17 +40,23 @@ export default function PublicAgreementPage() {
     const loadAgreement = async () => {
       try {
         setLoading(true);
-        // Busca acordo pelo protocolo
-        const data = await getAgreementByProtocolOrId(protocol);
+        setError(null);
+
+        const data = await getAgreementByProtocolOrId(
+          protocol,
+          token || undefined
+        );
+
         if (!data) {
           setError("Acordo nao encontrado ou link invalido");
           return;
         }
-        // Verifica se o token eh valido
+
         if (data.clientAccessToken !== token) {
           setError("Token de acesso invalido");
           return;
         }
+
         setAgreement(data);
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao carregar acordo");
@@ -49,27 +70,59 @@ export default function PublicAgreementPage() {
 
   const handleConfirm = async () => {
     if (!agreement) return;
-    setActionLoading(true);
+
+    setConfirmLoading(true);
     try {
-      await processPublicAgreementConfirmation(agreement.id, "accept");
-      setAgreement({ ...agreement, status: "confirmed" });
+      await processPublicAgreementConfirmation(
+        agreement.id,
+        "accept",
+        token || undefined
+      );
+
+      const updated = await getAgreementByProtocolOrId(
+        protocol,
+        token || undefined
+      );
+
+      if (!updated) {
+        throw new Error("Nao foi possivel recarregar o acordo apos confirmar");
+      }
+
+      setAgreement(updated);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao confirmar acordo");
     } finally {
-      setActionLoading(false);
+      setConfirmLoading(false);
     }
   };
 
   const handleContest = async () => {
     if (!agreement) return;
-    setActionLoading(true);
+
+    setContestLoading(true);
     try {
-      await processPublicAgreementConfirmation(agreement.id, "reject");
-      setAgreement({ ...agreement, status: "contested" });
+      await processPublicAgreementConfirmation(
+        agreement.id,
+        "reject",
+        token || undefined
+      );
+
+      const updated = await getAgreementByProtocolOrId(
+        protocol,
+        token || undefined
+      );
+
+      if (!updated) {
+        throw new Error("Nao foi possivel recarregar o acordo apos contestar");
+      }
+
+      setAgreement(updated);
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro ao contestar acordo");
     } finally {
-      setActionLoading(false);
+      setContestLoading(false);
     }
   };
 
@@ -99,7 +152,8 @@ export default function PublicAgreementPage() {
 
   const isPending = agreement.status === "pending_client_confirmation";
   const isActive = agreement.status === "confirmed";
-  const isDisputed = agreement.status === "contested";
+  const isDisputed =
+    agreement.status === "contested" || agreement.status === "rejected";
 
   return (
     <div className="min-h-screen bg-[#0B0B0D]">
@@ -110,7 +164,10 @@ export default function PublicAgreementPage() {
               PreJud
             </Link>
             <div className="text-sm text-gray-400">
-              Protocolo: <span className="font-mono text-emerald-500">{agreement.protocol}</span>
+              Protocolo:{" "}
+              <span className="font-mono text-emerald-500">
+                {agreement.protocol}
+              </span>
             </div>
           </div>
         </div>
@@ -125,7 +182,8 @@ export default function PublicAgreementPage() {
                 Proposta de Acordo
               </h1>
               <p className="text-gray-400 mt-2">
-                Voce recebeu uma proposta de acordo profissional. Revise os detalhes abaixo.
+                Voce recebeu uma proposta de acordo profissional. Revise os
+                detalhes abaixo.
               </p>
             </div>
 
@@ -164,7 +222,7 @@ export default function PublicAgreementPage() {
                     Valor
                   </label>
                   <p className="text-white bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3">
-                    R$ {agreement.value?.toFixed(2)}
+                    R$ {agreement.value?.toFixed(2) ?? "0.00"}
                   </p>
                 </div>
 
@@ -174,52 +232,65 @@ export default function PublicAgreementPage() {
                     Prazo de Entrega
                   </label>
                   <p className="text-white bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3">
-                    {agreement.deadline ? new Date(agreement.deadline).toLocaleDateString("pt-BR") : "-"}
+                    {agreement.deadline
+                      ? new Date(agreement.deadline).toLocaleDateString("pt-BR")
+                      : "-"}
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm text-gray-500">Descricao do Servico</label>
+                <label className="text-sm text-gray-500">
+                  Descricao do Servico
+                </label>
                 <p className="text-gray-300 bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3 min-h-[100px]">
                   {agreement.description}
                 </p>
               </div>
 
               <div className="border-t border-white/10 pt-6">
-                <h3 className="text-lg font-semibold text-white mb-4">Status da Proposta</h3>
-                
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  Status da Proposta
+                </h3>
+
                 {isPending && (
                   <div className="space-y-4">
                     <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
-                      <p className="text-yellow-500 text-center">
-                        Aguardando sua confirmacao
-                      </p>
+                      <div className="flex items-center gap-2 text-yellow-500">
+                        <AlertCircle className="w-5 h-5" />
+                        <span className="font-semibold">
+                          Aguardando sua resposta
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex gap-4">
+
+                    <div className="flex gap-3">
                       <button
                         onClick={handleConfirm}
-                        disabled={actionLoading}
-                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        disabled={confirmLoading}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-600/50 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
                       >
-                        {actionLoading ? (
+                        {confirmLoading ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                           <CheckCircle className="w-5 h-5" />
                         )}
-                        Confirmar Acordo
+                        {confirmLoading
+                          ? "Confirmando..."
+                          : "Confirmar Acordo"}
                       </button>
+
                       <button
                         onClick={handleContest}
-                        disabled={actionLoading}
-                        className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                        disabled={contestLoading}
+                        className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-600/50 text-white font-semibold py-3 px-6 rounded-lg flex items-center justify-center gap-2 transition-colors"
                       >
-                        {actionLoading ? (
+                        {contestLoading ? (
                           <Loader2 className="w-5 h-5 animate-spin" />
                         ) : (
                           <XCircle className="w-5 h-5" />
                         )}
-                        Contestar
+                        {contestLoading ? "Processando..." : "Contestar"}
                       </button>
                     </div>
                   </div>
@@ -227,30 +298,50 @@ export default function PublicAgreementPage() {
 
                 {isActive && (
                   <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-emerald-500 justify-center">
+                    <div className="flex items-center gap-2 text-emerald-500">
                       <CheckCircle className="w-5 h-5" />
-                      Acordo confirmado com sucesso!
+                      <span className="font-semibold">Acordo confirmado</span>
                     </div>
                   </div>
                 )}
 
                 {isDisputed && (
                   <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-                    <div className="flex items-center gap-2 text-red-500 justify-center">
+                    <div className="flex items-center gap-2 text-red-500">
                       <XCircle className="w-5 h-5" />
-                      Acordo em disputa
+                      <span className="font-semibold">Acordo contestado</span>
                     </div>
                   </div>
                 )}
               </div>
+
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  Integridade do Registro
+                </h3>
+
+                <div className="bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-4">
+                  <div className="flex items-start gap-3">
+                    <Shield className="w-5 h-5 text-emerald-500 mt-0.5" />
+                    <div className="min-w-0">
+                      <p className="text-sm text-gray-400">Hash SHA-256</p>
+                      <p className="text-sm text-white font-mono break-all">
+                        {agreement.hash || "N/A"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">
+                  Historico do Acordo
+                </h3>
+                <Timeline events={agreement.timeline || []} />
+              </div>
             </div>
           </div>
         </div>
-        {agreement.timeline && agreement.timeline.length > 0 && (
-          <div className="max-w-2xl mx-auto mt-8">
-            <Timeline events={agreement.timeline} />
-          </div>
-        )}
       </main>
     </div>
   );

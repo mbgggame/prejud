@@ -1,4 +1,4 @@
-/**
+﻿/**
  * TYPES/AGREEMENT.TS
  * 
  * Fonte unica de verdade do dominio Agreement no PreJud.
@@ -63,6 +63,7 @@ export type ActorType = "freelancer" | "client" | "system";
 
 export interface TimelineEvent {
   id: string;
+  agreementId: string;
   type: TimelineEventType;
   actorType: ActorType;
   actorName: string;

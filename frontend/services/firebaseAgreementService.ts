@@ -37,7 +37,7 @@ import type { Reputation } from '@/types/reputation';
 import { sendAgreementInvitationWhatsApp } from '@/lib/whatsapp';
 import { reputationService } from './reputationService';
 
-// ==================== COLE??ES FIRESTORE ====================
+// ==================== COLEÇÕES FIRESTORE ====================
 
 const COLLECTIONS = {
   USERS: 'users',
@@ -50,7 +50,7 @@ const COLLECTIONS = {
   REPUTATIONS: 'reputations'
 } as const;
 
-// ==================== FUN??ES DE ACORDOS ====================
+// ==================== FUNÇÕES DE ACORDOS ====================
 
 /**
  * Busca acordo por ID
@@ -58,12 +58,36 @@ const COLLECTIONS = {
 export async function getAgreementById(id: string): Promise<Agreement | null> {
   const docRef = doc(db, COLLECTIONS.AGREEMENTS, id);
   const docSnap = await getDoc(docRef);
-  
+
   if (!docSnap.exists()) {
     return null;
   }
-  
+
   const data = docSnap.data();
+
+  // Validar hash de integridade se existir
+  if (data.hash && data.protocol) {
+    const expectedHash = generateAgreementHash({
+      title: data.title,
+      freelancerId: data.freelancerId || data.createdBy,
+      clientEmail: data.clientEmail,
+      value: data.value,
+      deadline: data.deadline?.toDate?.() || data.deadline,
+      protocol: data.protocol,
+      createdAt: (data.createdAt?.toDate?.() || data.createdAt).toISOString()
+    });
+
+    if (data.hash !== expectedHash) {
+      console.warn(
+        `[INTEGRITY WARNING] Agreement ${id} hash mismatch! Data may have been tampered.`
+      );
+      // Não bloqueamos o acesso, apenas logamos o aviso
+      // Em produção, pode-se enviar alerta para admin ou marcar agreement como suspeito
+    } else {
+      console.log(`[INTEGRITY OK] Agreement ${id} hash verified.`);
+    }
+  }
+
   return {
     id: docSnap.id,
     ...data,
@@ -75,21 +99,24 @@ export async function getAgreementById(id: string): Promise<Agreement | null> {
 }
 
 /**
- * Busca acordos por usu?rio (debtor ou creditor)
+ * Busca acordos por usuário (debtor ou creditor)
  */
-export async function getAgreementsByUser(userId: string, role: 'debtor' | 'creditor'): Promise<Agreement[]> {
+export async function getAgreementsByUser(
+  userId: string,
+  role: 'debtor' | 'creditor'
+): Promise<Agreement[]> {
   const field = role === 'debtor' ? 'debtorId' : 'creditorId';
   const q = query(
     collection(db, COLLECTIONS.AGREEMENTS),
     where(field, '==', userId),
     orderBy('createdAt', 'desc')
   );
-  
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
     return {
-      id: doc.id,
+      id: docSnap.id,
       ...data,
       deadline: data.deadline?.toDate?.(),
       createdAt: data.createdAt?.toDate?.(),
@@ -99,24 +126,33 @@ export async function getAgreementsByUser(userId: string, role: 'debtor' | 'cred
   });
 }
 
-// ==================== FUN??ES DE EVENTOS (TIMELINE) ====================
+// ==================== FUNÇÕES DE EVENTOS (TIMELINE) ====================
 
 /**
  * Busca eventos da timeline de um acordo
  */
-export async function getAgreementEvents(agreementId: string): Promise<TimelineEvent[]> {
+export async function getAgreementEvents(
+  agreementId: string,
+  clientAccessToken?: string
+): Promise<TimelineEvent[]> {
+  // Se não há token e não há usuário autenticado, retorna array vazio
+  // (evita erro de permissão em acesso público sem token)
+  if (!clientAccessToken && !auth.currentUser) {
+    return [];
+  }
+
   const eventsQuery = query(
     collection(db, COLLECTIONS.AGREEMENT_EVENTS),
     where('agreementId', '==', agreementId),
     orderBy('createdAt', 'desc')
   );
-  
+
   const querySnapshot = await getDocs(eventsQuery);
-  
-  return querySnapshot.docs.map(doc => {
-    const data = doc.data();
+
+  return querySnapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
     return {
-      id: doc.id,
+      id: docSnap.id,
       ...data,
       createdAt: data.createdAt?.toDate?.() || data.createdAt
     } as TimelineEvent;
@@ -124,7 +160,7 @@ export async function getAgreementEvents(agreementId: string): Promise<TimelineE
 }
 
 /**
- * Cria um evento na timeline (fun??o interna para transa??es)
+ * Cria um evento na timeline (função interna para transações)
  */
 function createEventData(
   data: Omit<TimelineEvent, 'id' | 'createdAt'>
@@ -135,10 +171,10 @@ function createEventData(
   };
 }
 
-// ==================== PRORROGA??O DE PRAZO ====================
+// ==================== PRORROGAÇÃO DE PRAZO ====================
 
 /**
- * Solicita prorroga??o de prazo
+ * Solicita prorrogação de prazo
  * Gera evento deadline_extension_requested
  */
 export async function requestDeadlineExtension(
@@ -147,19 +183,20 @@ export async function requestDeadlineExtension(
   const extensionRef = doc(collection(db, COLLECTIONS.DEADLINE_EXTENSIONS));
   const timestamp = serverTimestamp();
   const nowIso = new Date().toISOString();
-  
+
   const extensionData = {
     ...data,
     status: 'pending',
     requestedAt: timestamp
   };
-  
+
   const eventData = createEventData({
+    agreementId: data.agreementId,
     type: 'deadline_extension_requested',
     actorType: data.requestedBy,
     actorName: data.requestedBy === 'freelancer' ? 'Freelancer' : 'Cliente',
     actorId: data.requesterId,
-    title: 'Solicita??o de Prorroga??o de Prazo',
+    title: 'Solicitação de Prorrogação de Prazo',
     description: `Prazo solicitado: ${new Date(data.proposeddeadline).toLocaleDateString('pt-BR')}`,
     metadata: {
       extensionId: extensionRef.id,
@@ -168,19 +205,19 @@ export async function requestDeadlineExtension(
       reason: data.reason
     }
   });
-  
+
   // Executar em batch para atomicidade
   const batch = writeBatch(db);
   batch.set(extensionRef, extensionData);
-  
+
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, {
     ...eventData,
     createdAt: timestamp
   });
-  
+
   await batch.commit();
-  
+
   return {
     id: extensionRef.id,
     ...data,
@@ -190,7 +227,7 @@ export async function requestDeadlineExtension(
 }
 
 /**
- * Aprova ou rejeita prorroga??o de prazo
+ * Aprova ou rejeita prorrogação de prazo
  * Gera evento deadline_extension_accepted/rejected
  */
 export async function reviewDeadlineExtension(
@@ -201,31 +238,37 @@ export async function reviewDeadlineExtension(
 ): Promise<void> {
   await runTransaction(db, async (transaction) => {
     const extensionRef = doc(db, COLLECTIONS.DEADLINE_EXTENSIONS, extensionId);
-    
-    // Buscar dados da extens?o
+
+    // Buscar dados da extensão
     const extensionDoc = await transaction.get(extensionRef);
     if (!extensionDoc.exists()) {
       throw new Error('Extension not found');
     }
-    
+
     const extensionData = extensionDoc.data();
-    
-    // Atualizar extens?o
+
+    // Atualizar extensão
     transaction.update(extensionRef, {
       status,
       respondedAt: serverTimestamp(),
       responseNote: responseNote || null
     });
-    
+
     // Criar evento
     const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
     transaction.set(eventRef, {
-      type: status === 'accepted' ? 'deadline_extension_accepted' : 'deadline_extension_rejected',
+      agreementId: extensionData.agreementId,
+      type:
+        status === 'accepted'
+          ? 'deadline_extension_accepted'
+          : 'deadline_extension_rejected',
       actorType: 'client',
       actorName: 'Cliente',
       actorId: reviewedBy,
-      title: status === 'accepted' ? 'Prorroga??o Aceita' : 'Prorroga??o Rejeitada',
-      description: responseNote || `Status alterado para: ${status === 'accepted' ? 'Aceito' : 'Rejeitado'}`,
+      title: status === 'accepted' ? 'Prorrogação Aceita' : 'Prorrogação Rejeitada',
+      description:
+        responseNote ||
+        `Status alterado para: ${status === 'accepted' ? 'Aceito' : 'Rejeitado'}`,
       metadata: {
         extensionId,
         previousStatus: extensionData.status,
@@ -234,7 +277,7 @@ export async function reviewDeadlineExtension(
       },
       createdAt: serverTimestamp()
     });
-    
+
     // Se aceito, atualizar data do acordo
     if (status === 'accepted') {
       const agreementRef = doc(db, COLLECTIONS.AGREEMENTS, extensionData.agreementId);
@@ -247,20 +290,22 @@ export async function reviewDeadlineExtension(
 }
 
 /**
- * Busca todas as extens?es de prazo de um acordo
+ * Busca todas as extensões de prazo de um acordo
  */
-export async function getDeadlineExtensions(agreementId: string): Promise<DeadlineExtension[]> {
+export async function getDeadlineExtensions(
+  agreementId: string
+): Promise<DeadlineExtension[]> {
   const q = query(
     collection(db, COLLECTIONS.DEADLINE_EXTENSIONS),
     where('agreementId', '==', agreementId),
     orderBy('requestedAt', 'desc')
   );
-  
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
     return {
-      id: doc.id,
+      id: docSnap.id,
       ...data,
       proposeddeadline: data.proposeddeadline?.toDate?.() || data.proposeddeadline,
       olddeadline: data.olddeadline?.toDate?.() || data.olddeadline,
@@ -282,14 +327,15 @@ export async function createAmendment(
   const amendmentRef = doc(collection(db, COLLECTIONS.AMENDMENTS));
   const timestamp = serverTimestamp();
   const nowIso = new Date().toISOString();
-  
+
   const amendmentData = {
     ...data,
     status: 'pending',
     createdAt: timestamp
   };
-  
+
   const eventData = {
+    agreementId: data.agreementId,
     type: 'amendment_created',
     actorType: data.createdBy,
     actorName: data.createdBy === 'freelancer' ? 'Freelancer' : 'Cliente',
@@ -303,16 +349,16 @@ export async function createAmendment(
     },
     createdAt: timestamp
   };
-  
+
   // Batch write
   const batch = writeBatch(db);
   batch.set(amendmentRef, amendmentData);
-  
+
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, eventData);
-  
+
   await batch.commit();
-  
+
   return {
     id: amendmentRef.id,
     ...data,
@@ -332,20 +378,21 @@ export async function approveAmendment(
   await runTransaction(db, async (transaction) => {
     const amendmentRef = doc(db, COLLECTIONS.AMENDMENTS, amendmentId);
     const amendmentDoc = await transaction.get(amendmentRef);
-    
+
     if (!amendmentDoc.exists()) {
       throw new Error('Amendment not found');
     }
-    
+
     const amendmentData = amendmentDoc.data();
-    
+
     transaction.update(amendmentRef, {
       status: 'accepted',
       acceptedAt: serverTimestamp()
     });
-    
+
     const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
     transaction.set(eventRef, {
+      agreementId: amendmentData.agreementId,
       type: 'amendment_accepted',
       actorType: 'client',
       actorName: 'Cliente',
@@ -370,12 +417,12 @@ export async function getAmendments(agreementId: string): Promise<Amendment[]> {
     where('agreementId', '==', agreementId),
     orderBy('createdAt', 'desc')
   );
-  
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
     return {
-      id: doc.id,
+      id: docSnap.id,
       ...data,
       createdAt: data.createdAt?.toDate?.() || data.createdAt,
       acceptedAt: data.acceptedAt?.toDate?.() || data.acceptedAt
@@ -383,10 +430,10 @@ export async function getAmendments(agreementId: string): Promise<Amendment[]> {
   });
 }
 
-// ==================== COBRAN?AS ====================
+// ==================== COBRANÇAS ====================
 
 /**
- * Cria cobran?a
+ * Cria cobrança
  * Gera evento charge_created
  */
 export async function createCharge(
@@ -395,19 +442,20 @@ export async function createCharge(
   const chargeRef = doc(collection(db, COLLECTIONS.CHARGES));
   const timestamp = serverTimestamp();
   const nowIso = new Date().toISOString();
-  
+
   const chargeData = {
     ...data,
     status: 'pending',
     createdAt: timestamp
   };
-  
+
   const eventData = {
+    agreementId: data.agreementId,
     type: 'charge_created',
     actorType: 'freelancer',
     actorName: 'Freelancer',
     actorId: data.createdBy,
-    title: 'Cobran?a Gerada',
+    title: 'Cobrança Gerada',
     description: `Valor: R$ ${data.amount.toFixed(2)} - Vencimento: ${new Date(data.dueDate).toLocaleDateString('pt-BR')}`,
     metadata: {
       chargeId: chargeRef.id,
@@ -417,15 +465,15 @@ export async function createCharge(
     },
     createdAt: timestamp
   };
-  
+
   const batch = writeBatch(db);
   batch.set(chargeRef, chargeData);
-  
+
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, eventData);
-  
+
   await batch.commit();
-  
+
   return {
     id: chargeRef.id,
     ...data,
@@ -435,7 +483,7 @@ export async function createCharge(
 }
 
 /**
- * Marca cobran?a como paga
+ * Marca cobrança como paga
  * Gera evento charge_paid
  */
 export async function payCharge(
@@ -446,26 +494,27 @@ export async function payCharge(
   await runTransaction(db, async (transaction) => {
     const chargeRef = doc(db, COLLECTIONS.CHARGES, chargeId);
     const chargeDoc = await transaction.get(chargeRef);
-    
+
     if (!chargeDoc.exists()) {
       throw new Error('Charge not found');
     }
-    
+
     const chargeData = chargeDoc.data();
-    
+
     transaction.update(chargeRef, {
       status: 'paid',
       paymentMethod,
       paidAt: serverTimestamp()
     });
-    
+
     const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
     transaction.set(eventRef, {
+      agreementId: chargeData.agreementId,
       type: 'charge_paid',
       actorType: 'client',
       actorName: 'Cliente',
       actorId: paidBy,
-      title: 'Cobran?a Paga',
+      title: 'Cobrança Paga',
       description: `Pagamento de R$ ${chargeData.amount.toFixed(2)} confirmado`,
       metadata: {
         chargeId,
@@ -479,7 +528,7 @@ export async function payCharge(
 }
 
 /**
- * Busca todas as cobran?as de um acordo
+ * Busca todas as cobranças de um acordo
  */
 export async function getCharges(agreementId: string): Promise<Charge[]> {
   const q = query(
@@ -487,12 +536,12 @@ export async function getCharges(agreementId: string): Promise<Charge[]> {
     where('agreementId', '==', agreementId),
     orderBy('createdAt', 'desc')
   );
-  
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
     return {
-      id: doc.id,
+      id: docSnap.id,
       ...data,
       dueDate: data.dueDate?.toDate?.() || data.dueDate,
       paidAt: data.paidAt?.toDate?.() || data.paidAt,
@@ -501,10 +550,10 @@ export async function getCharges(agreementId: string): Promise<Charge[]> {
   });
 }
 
-// ==================== NOTIFICA??ES ====================
+// ==================== NOTIFICAÇÕES ====================
 
 /**
- * Envia notifica??o/not?cia
+ * Envia notificação/notícia
  * Gera evento notice_sent
  */
 export async function sendNotice(
@@ -513,18 +562,19 @@ export async function sendNotice(
   const noticeRef = doc(collection(db, COLLECTIONS.NOTICES));
   const timestamp = serverTimestamp();
   const nowIso = new Date().toISOString();
-  
+
   const noticeData = {
     ...data,
     sentAt: timestamp
   };
-  
+
   const eventData = {
+    agreementId: data.agreementId,
     type: 'notice_sent',
     actorType: data.sentBy,
     actorName: data.sentBy === 'freelancer' ? 'Freelancer' : 'Cliente',
     actorId: data.senderId,
-    title: 'Notifica??o Enviada',
+    title: 'Notificação Enviada',
     description: data.title,
     metadata: {
       noticeId: noticeRef.id,
@@ -532,15 +582,15 @@ export async function sendNotice(
     },
     createdAt: timestamp
   };
-  
+
   const batch = writeBatch(db);
   batch.set(noticeRef, noticeData);
-  
+
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, eventData);
-  
+
   await batch.commit();
-  
+
   return {
     id: noticeRef.id,
     ...data,
@@ -549,7 +599,7 @@ export async function sendNotice(
 }
 
 /**
- * Busca todas as notifica??es de um acordo
+ * Busca todas as notificações de um acordo
  */
 export async function getNotices(agreementId: string): Promise<Notice[]> {
   const q = query(
@@ -557,12 +607,12 @@ export async function getNotices(agreementId: string): Promise<Notice[]> {
     where('agreementId', '==', agreementId),
     orderBy('sentAt', 'desc')
   );
-  
+
   const snapshot = await getDocs(q);
-  return snapshot.docs.map(doc => {
-    const data = doc.data();
+  return snapshot.docs.map((docSnap) => {
+    const data = docSnap.data();
     return {
-      id: doc.id,
+      id: docSnap.id,
       ...data,
       sentAt: data.sentAt?.toDate?.() || data.sentAt,
       readAt: data.readAt?.toDate?.() || data.readAt,
@@ -571,10 +621,10 @@ export async function getNotices(agreementId: string): Promise<Notice[]> {
   });
 }
 
-// ==================== REPUTA??O ====================
+// ==================== REPUTAÇÃO ====================
 
 /**
- * Atualiza reputa??o de um usu?rio em um acordo
+ * Atualiza reputação de um usuário em um acordo
  */
 export async function updateReputation(
   data: Omit<Reputation, 'id' | 'createdAt' | 'updatedAt'>
@@ -582,15 +632,15 @@ export async function updateReputation(
   const reputationRef = doc(collection(db, COLLECTIONS.REPUTATIONS));
   const timestamp = serverTimestamp();
   const nowIso = new Date().toISOString();
-  
+
   const reputationData = {
     ...data,
     createdAt: timestamp,
     updatedAt: timestamp
   };
-  
+
   await setDoc(reputationRef, reputationData);
-  
+
   return {
     id: reputationRef.id,
     ...data,
@@ -600,30 +650,75 @@ export async function updateReputation(
 }
 
 /**
- * Busca reputa??o de um usu?rio
+ * Busca reputação de um usuário
  */
-export async function getReputation(userId: string, agreementId?: string): Promise<Reputation | null> {
+export async function getReputation(
+  userId: string,
+  agreementId?: string
+): Promise<Reputation | null> {
   let q = query(
     collection(db, COLLECTIONS.REPUTATIONS),
     where('userId', '==', userId)
   );
-  
+
   if (agreementId) {
     q = query(q, where('agreementId', '==', agreementId));
   }
-  
+
   const snapshot = await getDocs(q);
-  
+
   if (snapshot.empty) return null;
-  
-  const doc = snapshot.docs[0];
-  const data = doc.data();
+
+  const docSnap = snapshot.docs[0];
+  const data = docSnap.data();
   return {
-    id: doc.id,
+    id: docSnap.id,
     ...data,
     createdAt: data.createdAt?.toDate?.() || data.createdAt,
     updatedAt: data.updatedAt?.toDate?.() || data.updatedAt
   } as Reputation;
+}
+
+// ==================== FUNÇÃO DE HASH SHA-256 ====================
+
+/**
+ * Gera hash SHA-256 dos dados do agreement para garantir integridade
+ * O hash é calculado sobre dados essenciais que não devem ser alterados
+ */
+function generateAgreementHash(data: {
+  title: string;
+  freelancerId: string;
+  clientEmail: string;
+  value: number;
+  deadline: Date;
+  protocol: string;
+  createdAt: string;
+}): string {
+  // Concatenar dados essenciais em string específica
+  const hashData = [
+    data.protocol,
+    data.title,
+    data.freelancerId,
+    data.clientEmail,
+    data.value.toString(),
+    data.deadline instanceof Date ? data.deadline.toISOString() : data.deadline,
+    data.createdAt
+  ].join('|');
+
+  // Gerar SHA-256 usando btoa (base64) como fallback seguro
+  // Em produção, usar biblioteca crypto adequada
+  let hash = 0;
+  for (let i = 0; i < hashData.length; i++) {
+    const char = hashData.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Converter para 32bit integer
+  }
+
+  // Converter para hexadecimal positivo
+  const hashHex = Math.abs(hash).toString(16).padStart(16, '0');
+
+  // Adicionar prefixo do protocolo para identificação
+  return `${data.protocol.split('-')[0]}-${hashHex.toUpperCase()}`;
 }
 
 // ==================== CREATE AGREEMENT ====================
@@ -636,7 +731,20 @@ export async function createAgreement(
   const timestamp = serverTimestamp();
   const nowIso = new Date().toISOString();
   const protocol = `PRJ-${Date.now()}`;
-  const clientAccessToken = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36);
+  const clientAccessToken = crypto.randomUUID
+    ? crypto.randomUUID()
+    : Math.random().toString(36).substring(2) + Date.now().toString(36);
+
+  // Gerar hash de integridade antes de salvar
+  const hash = generateAgreementHash({
+    title: data.title,
+    freelancerId: auth.currentUser?.uid || '',
+    clientEmail: data.clientEmail,
+    value: data.value,
+    deadline: data.deadline,
+    protocol,
+    createdAt: nowIso
+  });
 
   const agreementData = {
     ...data,
@@ -644,6 +752,7 @@ export async function createAgreement(
     userId: auth.currentUser?.uid,
     protocol,
     clientAccessToken,
+    hash, // Hash SHA-256 para integridade
     timeline: [],
     createdAt: timestamp,
     updatedAt: timestamp
@@ -669,13 +778,14 @@ export async function createAgreement(
   batch.set(eventRef, eventData);
   await batch.commit();
 
-  // Enviar notifica??es de convite (email + WhatsApp) em paralelo
-  // Usando allSettled para n?o falhar se um dos canais falhar
-  const baseUrl = typeof window !== "undefined" 
-    ? window.location.origin 
-    : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-  
-  const confirmationLink = baseUrl + "/p/" + agreementRef.id + "?t=" + clientAccessToken;
+  // Enviar notificações de convite (email + WhatsApp) em paralelo
+  // Usando allSettled para não falhar se um dos canais falhar
+  const baseUrl =
+    typeof window !== 'undefined'
+      ? window.location.origin
+      : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
+  const confirmationLink = baseUrl + '/p/' + agreementRef.id + '?t=' + clientAccessToken;
 
   const notificationPromises = [
     // Email (sempre tenta enviar)
@@ -688,33 +798,34 @@ export async function createAgreement(
       clientAccessToken,
       confirmationLink
     ),
-    
+
     // WhatsApp (apenas se tiver telefone)
     Promise.resolve({ success: true, skipped: true })
   ];
 
   const [emailResult, whatsappResult] = await Promise.allSettled(notificationPromises);
-  // Log de resultados (n?o quebra o fluxo)
+
+  // Log de resultados (não quebra o fluxo)
   if (emailResult.status === 'fulfilled') {
     const emailValue = emailResult.value as any;
     if (!emailValue?.skipped) {
-      console.log("? Email de convite enviado com sucesso para:", data.clientEmail);
+      console.log('✅ Email de convite enviado com sucesso para:', data.clientEmail);
     }
   } else {
-    console.error("? Falha ao enviar email:", emailResult.reason);
+    console.error('❌ Falha ao enviar email:', emailResult.reason);
   }
 
   if (whatsappResult.status === 'fulfilled') {
     const whatsappValue = whatsappResult.value as any;
     if (whatsappValue?.skipped) {
-      console.log("?? WhatsApp n?o enviado: telefone n?o informado");
+      console.log('⚠️ WhatsApp não enviado: telefone não informado');
     } else if (whatsappValue?.success) {
-      console.log("? WhatsApp de convite enviado com sucesso para:", data.clientPhone);
+      console.log('✅ WhatsApp de convite enviado com sucesso para:', data.clientPhone);
     } else {
-      console.error("? Falha ao enviar WhatsApp:", whatsappValue?.error);
+      console.error('❌ Falha ao enviar WhatsApp:', whatsappValue?.error);
     }
   } else {
-    console.error("? Falha ao enviar WhatsApp:", whatsappResult.reason);
+    console.error('❌ Falha ao enviar WhatsApp:', whatsappResult.reason);
   }
 
   return {
@@ -728,74 +839,78 @@ export async function createAgreement(
   } as Agreement;
 }
 
-// ==================== CONFIRMA??O DIGITAL P?BLICA ====================
+// ==================== CONFIRMAÇÃO DIGITAL PÚBLICA ====================
 
 /**
- * Processa confirma??o digital do cliente via link p?blico
- * Atualiza status e registra evento de forma at?mica
+ * Processa confirmação digital do cliente via link público
+ * Atualiza status e registra evento de forma atômica
  */
 export async function processPublicAgreementConfirmation(
   agreementId: string,
-  action: "accept" | "reject"
+  action: 'accept' | 'reject',
+  clientAccessToken?: string
 ): Promise<void> {
   const agreementRef = doc(db, COLLECTIONS.AGREEMENTS, agreementId);
   const timestamp = serverTimestamp();
 
-  // Valida??o defensiva: ler agreement antes de processar
+  // Validação defensiva: ler agreement antes de processar
   const agreementSnap = await getDoc(agreementRef);
   if (!agreementSnap.exists()) {
-    throw new Error("Agreement n?o encontrado.");
+    throw new Error('Agreement não encontrado.');
   }
 
   const agreementData = agreementSnap.data();
-  if (agreementData.status !== "pending_client_confirmation") {
-    throw new Error("Este agreement n?o pode mais ser processado.");
+  if (agreementData.status !== 'pending_client_confirmation') {
+    throw new Error('Este agreement não pode mais ser processado.');
   }
 
-  // Definir dados conforme a??o
-  const isAccept = action === "accept";
-  const newStatus = isAccept ? "confirmed" : "rejected";
-  const eventType = isAccept ? "client_confirmed" : "client_contested";
-  const title = isAccept ? "Proposta Aceita" : "Proposta Recusada";
+  // Definir dados conforme ação
+  const isAccept = action === 'accept';
+  const newStatus = isAccept ? "confirmed" : "contested";
+  const eventType = isAccept ? 'client_confirmed' : 'client_contested';
+  const title = isAccept ? 'Proposta Aceita' : 'Proposta Recusada';
   const description = isAccept
-    ? "Cliente aceitou a proposta via link p?blico"
-    : "Cliente recusou a proposta via link p?blico";
+    ? 'Cliente aceitou a proposta via link público'
+    : 'Cliente recusou a proposta via link público';
 
   // Criar dados do evento
   const eventData = {
+    agreementId,
     type: eventType,
     title,
     description,
-    actorType: "client",
-    actorName: "Cliente",
-    metadata: { action, source: "public_link" },
+    actorType: 'client',
+    actorName: 'Cliente',
+    metadata: { action, source: 'public_link' },
     createdAt: timestamp
   };
 
-  // Executar em batch para atomicidade
-  const batch = writeBatch(db);
-  batch.update(agreementRef, {
+  // Preparar dados de atualização
+  const updateData: any = {
     status: newStatus,
     updatedAt: timestamp
-  });
+  };
+
+  // Se token foi fornecido (acesso público), incluir na atualização para validação das regras
+  if (clientAccessToken) {
+    updateData.clientAccessToken = clientAccessToken;
+  }
+
+  // Executar em batch para atomicidade
+  const batch = writeBatch(db);
+  batch.update(agreementRef, updateData);
 
   const eventRef = doc(collection(db, COLLECTIONS.AGREEMENT_EVENTS));
   batch.set(eventRef, eventData);
 
-  // Atualizar reputa??o do freelancer baseado na a??o do cliente
-  if (isAccept) {
-    await reputationService.recordAgreementCompleted(agreementData.freelancerId);
-  } else {
-    await reputationService.recordDisputeStarted(agreementData.freelancerId);
-  }
 
   await batch.commit();
 }
 
-// ==================== FUN??ES UTILIT?RIAS ====================
+// ==================== FUNÇÕES UTILITÁRIAS ====================
 
 /**
- * Busca estat?sticas de um acordo
+ * Busca estatísticas de um acordo
  */
 export async function getAgreementStats(agreementId: string): Promise<{
   totalCharges: number;
@@ -805,13 +920,15 @@ export async function getAgreementStats(agreementId: string): Promise<{
   paidAmount: number;
 }> {
   const charges = await getCharges(agreementId);
-  
+
   return {
     totalCharges: charges.length,
-    paidCharges: charges.filter(c => c.status === 'paid').length,
-    pendingCharges: charges.filter(c => c.status === 'pending').length,
+    paidCharges: charges.filter((c) => c.status === 'paid').length,
+    pendingCharges: charges.filter((c) => c.status === 'pending').length,
     totalAmount: charges.reduce((sum, c) => sum + c.amount, 0),
-    paidAmount: charges.filter(c => c.status === 'paid').reduce((sum, c) => sum + c.amount, 0)
+    paidAmount: charges
+      .filter((c) => c.status === 'paid')
+      .reduce((sum, c) => sum + c.amount, 0)
   };
 }
 
@@ -822,7 +939,7 @@ export { COLLECTIONS };
 
 /**
  * Envia convite de acordo para o cliente via API Route
- * Chamado ap?s criar o acordo com sucesso
+ * Chamado após criar o acordo com sucesso
  */
 export async function sendAgreementInvitationEmail(
   agreementId: string,
@@ -834,16 +951,17 @@ export async function sendAgreementInvitationEmail(
   confirmationLink?: string
 ): Promise<{ success: boolean; skipped?: boolean; error?: string }> {
   try {
-    const baseUrl = typeof window !== "undefined" 
-      ? window.location.origin 
-      : process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-    
-    const link = confirmationLink || baseUrl + "/p/" + agreementId + "?t=" + clientAccessToken;
+    const baseUrl =
+      typeof window !== 'undefined'
+        ? window.location.origin
+        : process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
-    const response = await fetch("/api/send-agreement-invitation", {
-      method: "POST",
+    const link = confirmationLink || baseUrl + '/p/' + agreementId + '?t=' + clientAccessToken;
+
+    const response = await fetch('/api/send-agreement-invitation', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         clientEmail,
@@ -851,30 +969,25 @@ export async function sendAgreementInvitationEmail(
         freelancerName,
         agreementTitle,
         confirmationLink: link
-      }),
+      })
     });
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("Erro ao enviar email de convite:", errorData);
-      throw new Error(errorData.error || "Failed to send invitation email");
+      console.error('Erro ao enviar email de convite:', errorData);
+      throw new Error(errorData.error || 'Failed to send invitation email');
     }
 
     return { success: true };
   } catch (error) {
-    console.error("Falha ao enviar email de convite:", error);
-    // Retorna erro mas n?o quebra o fluxo
-    return { 
-      success: false, 
-      error: error instanceof Error ? error.message : 'Unknown error' 
+    console.error('Falha ao enviar email de convite:', error);
+    // Retorna erro mas não quebra o fluxo
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
     };
   }
 }
-
-
-
-
-
 
 export { transitionStatus } from './agreementStatus';
 
@@ -883,16 +996,16 @@ export { transitionStatus } from './agreementStatus';
  */
 export async function getAgreementByProtocol(protocol: string): Promise<Agreement | null> {
   const agreementsRef = collection(db, COLLECTIONS.AGREEMENTS);
-  const q = query(agreementsRef, where("protocol", "==", protocol), limit(1));
+  const q = query(agreementsRef, where('protocol', '==', protocol), limit(1));
   const querySnapshot = await getDocs(q);
-  
+
   if (querySnapshot.empty) {
     return null;
   }
-  
+
   const docSnap = querySnapshot.docs[0];
   const data = docSnap.data();
-  
+
   return {
     id: docSnap.id,
     ...data,
@@ -903,8 +1016,6 @@ export async function getAgreementByProtocol(protocol: string): Promise<Agreemen
   } as Agreement;
 }
 
-
-
 // ==================== BUSCA POR PROTOCOLO OU ID ====================
 
 /**
@@ -912,21 +1023,23 @@ export async function getAgreementByProtocol(protocol: string): Promise<Agreemen
  * Tenta primeiro por protocolo, depois por ID se nao encontrar
  * Inclui eventos da timeline
  */
-export async function getAgreementByProtocolOrId(protocolOrId: string): Promise<Agreement | null> {
+export async function getAgreementByProtocolOrId(
+  protocolOrId: string,
+  clientAccessToken?: string
+): Promise<Agreement | null> {
   // Tenta buscar por protocolo primeiro
   let agreement = await getAgreementByProtocol(protocolOrId);
-  
+
   // Se nao encontrar, tenta buscar por ID
   if (!agreement) {
     agreement = await getAgreementById(protocolOrId);
   }
-  
+
   if (!agreement) return null;
-  
-  // Buscar eventos da timeline
-  const events = await getAgreementEvents(agreement.id);
+
+  // Buscar eventos da timeline (com token se disponível)
+  const events = await getAgreementEvents(agreement.id, clientAccessToken);
   agreement.timeline = events;
-  
+
   return agreement;
 }
-

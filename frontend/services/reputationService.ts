@@ -79,7 +79,7 @@ export const reputationService = {
       deadlineViolations: 0,
       responseScore: 50
     };
-    
+
     return updateReputation(reputationData);
   },
 
@@ -93,61 +93,75 @@ export const reputationService = {
       ...updates,
       userId: reputation.userId // garantir que userId não seja perdido
     };
-    
+
     // Recalcular score
     updatedData.score = reputationService.calculateScore(updatedData);
-    
+
     // Salvar no Firebase
     return updateReputation(updatedData);
   },
 
-  // Atualizar reputação após evento do agreement
   recordAgreementCompleted: async (userId: string): Promise<void> => {
-    const reputation = await getReputation(userId);
-    if (reputation) {
-      await reputationService.updateMetrics(reputation, {
-        completedAgreements: reputation.completedAgreements + 1
-      });
+    let reputation = await getReputation(userId);
+
+    if (!reputation) {
+      reputation = await reputationService.create(userId);
     }
+
+    await reputationService.updateMetrics(reputation, {
+      completedAgreements: reputation.completedAgreements + 1
+    });
   },
 
   recordDisputeStarted: async (userId: string): Promise<void> => {
-    const reputation = await getReputation(userId);
-    if (reputation) {
-      await reputationService.updateMetrics(reputation, {
-        disputedAgreements: reputation.disputedAgreements + 1
-      });
+    let reputation = await getReputation(userId);
+
+    if (!reputation) {
+      reputation = await reputationService.create(userId);
     }
+
+    await reputationService.updateMetrics(reputation, {
+      disputedAgreements: reputation.disputedAgreements + 1
+    });
   },
 
   recordLatePayment: async (userId: string): Promise<void> => {
-    const reputation = await getReputation(userId);
-    if (reputation) {
-      await reputationService.updateMetrics(reputation, {
-        latePayments: reputation.latePayments + 1
-      });
+    let reputation = await getReputation(userId);
+
+    if (!reputation) {
+      reputation = await reputationService.create(userId);
     }
+
+    await reputationService.updateMetrics(reputation, {
+      latePayments: reputation.latePayments + 1
+    });
   },
 
   recordDeadlineViolation: async (userId: string): Promise<void> => {
-    const reputation = await getReputation(userId);
-    if (reputation) {
-      await reputationService.updateMetrics(reputation, {
-        deadlineViolations: reputation.deadlineViolations + 1
-      });
+    let reputation = await getReputation(userId);
+
+    if (!reputation) {
+      reputation = await reputationService.create(userId);
     }
+
+    await reputationService.updateMetrics(reputation, {
+      deadlineViolations: reputation.deadlineViolations + 1
+    });
   },
 
   recordRating: async (userId: string, rating: number): Promise<void> => {
-    const reputation = await getReputation(userId);
-    if (reputation) {
-      const newCount = reputation.ratingsCount + 1;
-      const newAverage = ((reputation.ratingAverage * reputation.ratingsCount) + rating) / newCount;
-      
-      await reputationService.updateMetrics(reputation, {
-        ratingsCount: newCount,
-        ratingAverage: Math.round(newAverage * 10) / 10
-      });
+    let reputation = await getReputation(userId);
+
+    if (!reputation) {
+      reputation = await reputationService.create(userId);
     }
+
+    const newCount = reputation.ratingsCount + 1;
+    const newAverage = ((reputation.ratingAverage * reputation.ratingsCount) + rating) / newCount;
+
+    await reputationService.updateMetrics(reputation, {
+      ratingsCount: newCount,
+      ratingAverage: Math.round(newAverage * 10) / 10
+    });
   }
 };

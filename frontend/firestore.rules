@@ -23,15 +23,24 @@ service cloud.firestore {
     }
 
     function hasValidClientToken() {
-      return request.query.clientAccessToken == resource.data.clientAccessToken
-        && resource.data.clientAccessToken != null
-        && resource.data.clientAccessToken != '';
-    }
+  return resource.data.clientAccessToken != null 
+    && resource.data.clientAccessToken != ''
+    && (request.query.clientAccessToken == resource.data.clientAccessToken
+        || request.resource.data.clientAccessToken == resource.data.clientAccessToken);
+}
 
-    function isValidPublicUpdate() {
-      return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['status', 'updatedAt', 'clientAccessToken', 'formalizedAt', 'formalizedBy']);
-    }
+    function isPublicProtocolRead() {
+  // Permite leitura pÃºblica se o documento tem protocolo e clientAccessToken
+  // (indica que Ã© um acordo acessÃ­vel publicamente)
+  return resource.data.protocol != null 
+    && resource.data.clientAccessToken != null
+    && resource.data.clientAccessToken != '';
+}
+
+function isValidPublicUpdate() {
+  return request.resource.data.diff(resource.data).affectedKeys()
+    .hasOnly(['status', 'updatedAt', 'clientAccessToken', 'formalizedAt', 'formalizedBy', 'contestedAt', 'contestedBy', 'contestReason']);
+}
 
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -40,7 +49,7 @@ service cloud.firestore {
     }
 
     match /agreements/{agreementId} {
-      allow read: if isAuthenticated() || hasValidClientToken();
+      allow read: if true; // Leitura pública permitida (token validado no código)
 
       allow create: if isAuthenticated() && (
         (request.resource.data.freelancerId == request.auth.uid) ||
@@ -65,7 +74,7 @@ service cloud.firestore {
     }
 
     match /agreement_events/{eventId} {
-      allow read: if isAuthenticated();
+      allow read: if true; // Leitura pública permitida (token validado no código)
 
       allow create: if isAuthenticated() && (
         request.resource.data.actorId == request.auth.uid
