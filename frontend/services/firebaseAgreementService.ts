@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FIREBASE AGREEMENT SERVICE
  * Real Firestore backend for PreJud
  * Replaces mocks with persistent storage
@@ -910,12 +910,23 @@ export async function getAgreementByProtocol(protocol: string): Promise<Agreemen
 /**
  * Busca acordo por protocolo ou ID (para acesso publico)
  * Tenta primeiro por protocolo, depois por ID se nao encontrar
+ * Inclui eventos da timeline
  */
 export async function getAgreementByProtocolOrId(protocolOrId: string): Promise<Agreement | null> {
   // Tenta buscar por protocolo primeiro
-  const byProtocol = await getAgreementByProtocol(protocolOrId);
-  if (byProtocol) return byProtocol;
+  let agreement = await getAgreementByProtocol(protocolOrId);
   
   // Se nao encontrar, tenta buscar por ID
-  return await getAgreementById(protocolOrId);
+  if (!agreement) {
+    agreement = await getAgreementById(protocolOrId);
+  }
+  
+  if (!agreement) return null;
+  
+  // Buscar eventos da timeline
+  const events = await getAgreementEvents(agreement.id);
+  agreement.timeline = events;
+  
+  return agreement;
 }
+
