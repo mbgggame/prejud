@@ -117,7 +117,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
   const router = useRouter();
 
   const isLoggedIn = !!user;
-  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário';
+  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'UsuÃ¡rio';
   const userEmail = user?.email || '';
 
   const handleLogout = async (): Promise<void> => {
@@ -150,88 +150,88 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
     {
       icon: FileSearch,
       number: "2",
-      title: "Gerar a notificação",
-      description: "Criar um documento de cobrança formal."
+      title: "Gerar a notificaÃ§Ã£o",
+      description: "Criar um documento de cobranÃ§a formal."
     },
     {
       icon: Send,
       number: "3",
-      title: "Enviar ao destinatário",
-      description: "A notificação é enviada e registrada."
+      title: "Enviar ao destinatÃ¡rio",
+      description: "A notificaÃ§Ã£o Ã© enviada e registrada."
     },
     {
       icon: History,
       number: "4",
-      title: "Registrar resposta ou solução",
-      description: "O histórico da comunicação fica documentado."
+      title: "Registrar resposta ou soluÃ§Ã£o",
+      description: "O histÃ³rico da comunicaÃ§Ã£o fica documentado."
     }
   ];
 
   const whenToUse: WhenToUse[] = [
     {
       icon: DollarSign,
-      title: "Cliente não pagou",
-      description: "Quando um pagamento acordado não é realizado."
+      title: "Cliente nÃ£o pagou",
+      description: "Quando um pagamento acordado nÃ£o Ã© realizado."
     },
     {
       icon: AlertCircle,
       title: "Quebra de acordo",
-      description: "Quando o combinado entre as partes não é cumprido."
+      description: "Quando o combinado entre as partes nÃ£o Ã© cumprido."
     },
     {
       icon: MessageSquare,
       title: "Falta de resposta",
-      description: "Quando o cliente deixa de responder às tentativas de cobrança."
+      description: "Quando o cliente deixa de responder Ã s tentativas de cobranÃ§a."
     },
     {
       icon: FileText,
       title: "Registro formal",
-      description: "Quando é necessário documentar a tentativa de solução."
+      description: "Quando Ã© necessÃ¡rio documentar a tentativa de soluÃ§Ã£o."
     }
   ];
 
   const features: Feature[] = [
     {
       icon: Hash,
-      title: "Hash criptográfico SHA-256",
+      title: "Hash criptogrÃ¡fico SHA-256",
       description: "Garante integridade do documento."
     },
     {
       icon: Eye,
-      title: "Protocolo rastreável",
-      description: "Cada notificação recebe um número único."
+      title: "Protocolo rastreÃ¡vel",
+      description: "Cada notificaÃ§Ã£o recebe um nÃºmero Ãºnico."
     },
     {
       icon: History,
-      title: "Histórico completo",
-      description: "Registro das notificações, respostas e interações."
+      title: "HistÃ³rico completo",
+      description: "Registro das notificaÃ§Ãµes, respostas e interaÃ§Ãµes."
     }
   ];
 
   const faqItems: FAQItem[] = [
     {
-      question: "Notificação extrajudicial tem valor jurídico?",
-      answer: "Ela não inicia um processo judicial, mas pode servir como prova de comunicação e tentativa de resolução."
+      question: "NotificaÃ§Ã£o extrajudicial tem valor jurÃ­dico?",
+      answer: "Ela nÃ£o inicia um processo judicial, mas pode servir como prova de comunicaÃ§Ã£o e tentativa de resoluÃ§Ã£o."
     },
     {
-      question: "Preciso de advogado para enviar uma notificação?",
-      answer: "Não necessariamente. Em muitos casos a notificação pode ser feita diretamente entre as partes."
+      question: "Preciso de advogado para enviar uma notificaÃ§Ã£o?",
+      answer: "NÃ£o necessariamente. Em muitos casos a notificaÃ§Ã£o pode ser feita diretamente entre as partes."
     },
     {
-      question: "Uma notificação pode resolver um conflito?",
-      answer: "Sim. Muitas disputas são resolvidas quando a cobrança passa a ser formalizada."
+      question: "Uma notificaÃ§Ã£o pode resolver um conflito?",
+      answer: "Sim. Muitas disputas sÃ£o resolvidas quando a cobranÃ§a passa a ser formalizada."
     }
   ];
 
   const beneficios = [
-    "comunica formalmente a cobrança",
-    "registra a tentativa de resolução",
-    "demonstra boa-fé na tentativa de acordo",
-    "pode servir como prova em situações futuras"
+    "comunica formalmente a cobranÃ§a",
+    "registra a tentativa de resoluÃ§Ã£o",
+    "demonstra boa-fÃ© na tentativa de acordo",
+    "pode servir como prova em situaÃ§Ãµes futuras"
   ];
 
   // ==========================================
-  // RENDERIZAÇÃO
+  // RENDERIZAÃ‡ÃƒO
   // ==========================================
   if (loading) {
     return (
@@ -260,16 +260,16 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
               </div>
             </div>
 
-            {/* Navegação Desktop */}
+            {/* NavegaÃ§Ã£o Desktop */}
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#o-que-e" className="text-sm text-gray-400 hover:text-white transition-colors">O Que É</a>
+              <a href="#o-que-e" className="text-sm text-gray-400 hover:text-white transition-colors">O Que Ã‰</a>
               <a href="#quando-usar" className="text-sm text-gray-400 hover:text-white transition-colors">Quando Usar</a>
               <a href="#como-funciona" className="text-sm text-gray-400 hover:text-white transition-colors">Como Funciona</a>
               <a href="#como-ajuda" className="text-sm text-gray-400 hover:text-white transition-colors">Como Ajuda</a>
               <a href="#faq" className="text-sm text-gray-400 hover:text-white transition-colors">FAQ</a>
             </nav>
 
-            {/* Ações do Usuário */}
+            {/* AÃ§Ãµes do UsuÃ¡rio */}
             <div className="hidden md:flex items-center gap-4">
               {isLoggedIn ? (
                 <>
@@ -327,7 +327,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
                               className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                             >
                               <Settings size={16} />
-                              Configurações
+                              ConfiguraÃ§Ãµes
                             </Link>
                             <div className="my-1 border-t border-white/10"></div>
                             <button
@@ -369,7 +369,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
         {/* Menu Mobile Dropdown */}
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#0B0B0D] border-t border-white/5 px-6 py-4 space-y-4">
-            <a href="#o-que-e" className="block text-gray-400 hover:text-white">O Que É</a>
+            <a href="#o-que-e" className="block text-gray-400 hover:text-white">O Que Ã‰</a>
             <a href="#quando-usar" className="block text-gray-400 hover:text-white">Quando Usar</a>
             <a href="#como-funciona" className="block text-gray-400 hover:text-white">Como Funciona</a>
             <a href="#como-ajuda" className="block text-gray-400 hover:text-white">Como Ajuda</a>
@@ -402,20 +402,20 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
         
         <div className="max-w-7xl mx-auto px-6 lg:px-8 relative">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-            {/* Conteúdo */}
+            {/* ConteÃºdo */}
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-medium">
                 <Gavel size={12} />
-                Notificação formal
+                NotificaÃ§Ã£o formal
               </div>
               
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight tracking-tight">
-                Notificação extrajudicial de cobrança:{" "}
+                NotificaÃ§Ã£o extrajudicial de cobranÃ§a:{" "}
                 <span className="text-purple-400">como funciona</span>.
               </h1>
               
               <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
-                Entenda como uma notificação formal pode ajudar a resolver conflitos e cobrar pagamentos sem precisar iniciar um processo judicial.
+                Entenda como uma notificaÃ§Ã£o formal pode ajudar a resolver conflitos e cobrar pagamentos sem precisar iniciar um processo judicial.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -423,7 +423,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
                   onClick={handleCriarNotificacao}
                   className="group px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all hover:scale-105 flex items-center justify-center gap-2"
                 >
-                  Criar notificação
+                  Criar notificaÃ§Ã£o
                   <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
                 </button>
                 <a 
@@ -437,30 +437,30 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
               <div className="flex items-center gap-6 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  Cobrança formal
+                  CobranÃ§a formal
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  Registro verificável
+                  Registro verificÃ¡vel
                 </div>
               </div>
             </div>
 
-            {/* Visual/Ilustração */}
+            {/* Visual/IlustraÃ§Ã£o */}
             <div className="relative">
               <div className="relative bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-6 border border-white/10 shadow-2xl">
                 <div className="flex items-center gap-2 mb-4 pb-4 border-b border-white/5">
                   <div className="w-3 h-3 rounded-full bg-red-500/20" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
                   <div className="w-3 h-3 rounded-full bg-green-500/20" />
-                  <span className="ml-4 text-xs text-gray-500">Notificação Extrajudicial</span>
+                  <span className="ml-4 text-xs text-gray-500">NotificaÃ§Ã£o Extrajudicial</span>
                 </div>
                 
                 <div className="space-y-4">
                   <div className="p-4 bg-blue-500/5 rounded-lg border border-blue-500/20">
                     <div className="flex items-center gap-2 mb-2">
                       <FileText size={16} className="text-blue-400" />
-                      <p className="text-sm font-medium text-blue-400">Notificação de Cobrança</p>
+                      <p className="text-sm font-medium text-blue-400">NotificaÃ§Ã£o de CobranÃ§a</p>
                     </div>
                     <p className="text-xs text-gray-400">Protocolo: #NE-2024-001234</p>
                   </div>
@@ -468,7 +468,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
                   <div className="p-4 bg-white/5 rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="text-sm font-medium">Destinatário</p>
+                        <p className="text-sm font-medium">DestinatÃ¡rio</p>
                         <p className="text-xs text-gray-500">Empresa ABC Ltda</p>
                       </div>
                       <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">Pendente</span>
@@ -484,7 +484,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
                   <div className="flex items-center justify-between p-4 bg-green-500/5 rounded-lg border border-green-500/20">
                     <div>
                       <p className="text-sm font-medium text-green-400">Resposta registrada</p>
-                      <p className="text-xs text-gray-500">Acordo em negociação</p>
+                      <p className="text-xs text-gray-500">Acordo em negociaÃ§Ã£o</p>
                     </div>
                     <CheckCircle size={16} className="text-green-400" />
                   </div>
@@ -499,20 +499,20 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
       </section>
 
       {/* ==========================================
-          SEÇÃO 1: O QUE É
+          SEÃ‡ÃƒO 1: O QUE Ã‰
           ========================================== */}
       <section id="o-que-e" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              O que é uma notificação extrajudicial?
+              O que Ã© uma notificaÃ§Ã£o extrajudicial?
             </h2>
             <p className="text-lg text-gray-400 leading-relaxed mb-8">
-              A notificação extrajudicial é uma comunicação formal enviada por uma parte a outra para informar uma cobrança, 
-              exigir cumprimento de um acordo ou registrar uma tentativa de solução de conflito.
+              A notificaÃ§Ã£o extrajudicial Ã© uma comunicaÃ§Ã£o formal enviada por uma parte a outra para informar uma cobranÃ§a, 
+              exigir cumprimento de um acordo ou registrar uma tentativa de soluÃ§Ã£o de conflito.
             </p>
             <p className="text-lg text-gray-400 leading-relaxed mb-8">
-              Ela não inicia um processo judicial, mas cria um registro claro de que a cobrança foi realizada.
+              Ela nÃ£o inicia um processo judicial, mas cria um registro claro de que a cobranÃ§a foi realizada.
             </p>
           </div>
 
@@ -528,13 +528,13 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
       </section>
 
       {/* ==========================================
-          SEÇÃO 2: QUANDO USAR
+          SEÃ‡ÃƒO 2: QUANDO USAR
           ========================================== */}
       <section id="quando-usar" className="py-20 lg:py-32 bg-[#0B0B0D]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Quando usar uma notificação de cobrança</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Situações ideais para formalizar a cobrança.</p>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Quando usar uma notificaÃ§Ã£o de cobranÃ§a</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">SituaÃ§Ãµes ideais para formalizar a cobranÃ§a.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -555,13 +555,13 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
       </section>
 
       {/* ==========================================
-          SEÇÃO 3: COMO FUNCIONA
+          SEÃ‡ÃƒO 3: COMO FUNCIONA
           ========================================== */}
       <section id="como-funciona" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Como funciona uma notificação extrajudicial</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Passos simples para formalizar sua cobrança.</p>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Como funciona uma notificaÃ§Ã£o extrajudicial</h2>
+            <p className="text-gray-400 max-w-2xl mx-auto">Passos simples para formalizar sua cobranÃ§a.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -585,17 +585,17 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
       </section>
 
       {/* ==========================================
-          SEÇÃO 4: COMO AJUDA
+          SEÃ‡ÃƒO 4: COMO AJUDA
           ========================================== */}
       <section id="como-ajuda" className="py-20 lg:py-32 bg-[#0B0B0D]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-16">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-                Uma forma moderna de enviar notificações
+                Uma forma moderna de enviar notificaÃ§Ãµes
               </h2>
               <p className="text-lg text-gray-400 leading-relaxed">
-                O PreJud permite registrar acordos, gerar notificações formais e manter um histórico verificável das comunicações entre as partes.
+                O PreJud permite registrar acordos, gerar notificaÃ§Ãµes formais e manter um histÃ³rico verificÃ¡vel das comunicaÃ§Ãµes entre as partes.
               </p>
             </div>
             <div className="flex justify-center">
@@ -624,13 +624,13 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
       </section>
 
       {/* ==========================================
-          SEÇÃO 5: FAQ
+          SEÃ‡ÃƒO 5: FAQ
           ========================================== */}
       <section id="faq" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Perguntas frequentes</h2>
-            <p className="text-gray-400">Tire suas dúvidas sobre notificações extrajudiciais.</p>
+            <p className="text-gray-400">Tire suas dÃºvidas sobre notificaÃ§Ãµes extrajudiciais.</p>
           </div>
 
           <div className="space-y-4">
@@ -666,17 +666,17 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
       <section className="py-20 lg:py-32 bg-gradient-to-b from-purple-900/20 to-[#0B0B0D]">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-5xl font-bold mb-6">
-            Formalize suas cobranças
+            Formalize suas cobranÃ§as
           </h2>
           <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
-            Envie notificações formais e registre seus acordos de forma estruturada.
+            Envie notificaÃ§Ãµes formais e registre seus acordos de forma estruturada.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button 
               onClick={handleCriarNotificacao}
               className="px-8 py-4 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-xl transition-all hover:scale-105"
             >
-              Criar notificação
+              Criar notificaÃ§Ã£o
             </button>
             {isLoggedIn && (
               <Link 
@@ -704,7 +704,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
                 <span className="text-xl font-semibold">PreJud</span>
               </div>
               <p className="text-sm text-gray-500">
-                Notificação extrajudicial com integridade digital garantida.
+                NotificaÃ§Ã£o extrajudicial com integridade digital garantida.
               </p>
             </div>
             
@@ -712,13 +712,13 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
               <h4 className="font-semibold mb-4">Produto</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Preços</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">PreÃ§os</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Jurídico</h4>
+              <h4 className="font-semibold mb-4">JurÃ­dico</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
@@ -737,7 +737,7 @@ export default function NotificacaoExtrajudicialCobrancaPage() {
           
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
-              © 2024 PreJud. Todos os direitos reservados.
+              Â© 2024 PreJud. Todos os direitos reservados.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-white transition-colors">Termos</a>

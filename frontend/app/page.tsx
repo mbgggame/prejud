@@ -38,7 +38,7 @@ interface BrazilClockProps {
   className?: string;
 }
 
-// Componente de relógio com horário oficial do Brasil
+// Componente de relÃ³gio com horÃ¡rio oficial do Brasil
 function BrazilClock({ className = "" }: BrazilClockProps) {
   const [time, setTime] = useState<string>('');
   const [mounted, setMounted] = useState<boolean>(false);
@@ -94,7 +94,7 @@ interface Step {
   description: string;
 }
 
-// Interface para recursos de segurança
+// Interface para recursos de seguranÃ§a
 interface SecurityFeature {
   icon: React.ElementType;
   title: string;
@@ -115,7 +115,7 @@ export default function FreelasPage() {
   const router = useRouter();
 
   const isLoggedIn = !!user;
-  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário';
+  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'UsuÃ¡rio';
   const userEmail = user?.email || '';
 
   const handleLogout = async (): Promise<void> => {
@@ -138,8 +138,8 @@ export default function FreelasPage() {
   const problems: Problem[] = [
     {
       icon: AlertTriangle,
-      title: "Cliente não paga",
-      description: "Você entrega o trabalho e o pagamento não acontece."
+      title: "Cliente nÃ£o paga",
+      description: "VocÃª entrega o trabalho e o pagamento nÃ£o acontece."
     },
     {
       icon: MessageSquare,
@@ -153,8 +153,8 @@ export default function FreelasPage() {
     },
     {
       icon: MessagesSquare,
-      title: "Discussões intermináveis",
-      description: "Conversas longas sem solução concreta."
+      title: "DiscussÃµes interminÃ¡veis",
+      description: "Conversas longas sem soluÃ§Ã£o concreta."
     }
   ];
 
@@ -163,19 +163,19 @@ export default function FreelasPage() {
       icon: FileText,
       number: "PASSO 1",
       title: "Registrar o acordo",
-      description: "Registre o combinado com seu cliente e gere um documento com hash criptográfico."
+      description: "Registre o combinado com seu cliente e gere um documento com hash criptogrÃ¡fico."
     },
     {
       icon: History,
       number: "PASSO 2",
       title: "Prova e rastreabilidade",
-      description: "Tudo fica registrado com data, integridade e histórico das partes."
+      description: "Tudo fica registrado com data, integridade e histÃ³rico das partes."
     },
     {
       icon: Send,
       number: "PASSO 3",
-      title: "Cobrança formal",
-      description: "Se o cliente não pagar, envie uma notificação formal pela plataforma."
+      title: "CobranÃ§a formal",
+      description: "Se o cliente nÃ£o pagar, envie uma notificaÃ§Ã£o formal pela plataforma."
     }
   ];
 
@@ -183,25 +183,25 @@ export default function FreelasPage() {
     {
       icon: Hash,
       title: "Registro com hash SHA-256",
-      description: "Cada documento possui integridade criptográfica."
+      description: "Cada documento possui integridade criptogrÃ¡fica."
     },
     {
       icon: Eye,
-      title: "Protocolo rastreável",
-      description: "Todas as ações recebem número de protocolo."
+      title: "Protocolo rastreÃ¡vel",
+      description: "Todas as aÃ§Ãµes recebem nÃºmero de protocolo."
     },
     {
       icon: Shield,
-      title: "Histórico verificável",
-      description: "Acordos, notificações e respostas ficam registrados."
+      title: "HistÃ³rico verificÃ¡vel",
+      description: "Acordos, notificaÃ§Ãµes e respostas ficam registrados."
     }
   ];
 
   // NOVO: Array de guias SEO
   const guideCards: GuideCard[] = [
     {
-      title: "Cliente não pagou freela? Veja o que fazer",
-      description: "Guia completo para resolver cobranças e proteger seus trabalhos.",
+      title: "Cliente nÃ£o pagou freela? Veja o que fazer",
+      description: "Guia completo para resolver cobranÃ§as e proteger seus trabalhos.",
       href: "/cliente-nao-pagou-freela"
     },
     {
@@ -210,13 +210,13 @@ export default function FreelasPage() {
       href: "/modelo-de-contrato"
     },
     {
-      title: "Como cobrar cliente que não paga",
-      description: "Estratégias práticas para cobrar de forma profissional.",
+      title: "Como cobrar cliente que nÃ£o paga",
+      description: "EstratÃ©gias prÃ¡ticas para cobrar de forma profissional.",
       href: "/como-cobrar-cliente"
     },
     {
-      title: "Notificação extrajudicial de cobrança",
-      description: "Entenda quando usar uma cobrança formal.",
+      title: "NotificaÃ§Ã£o extrajudicial de cobranÃ§a",
+      description: "Entenda quando usar uma cobranÃ§a formal.",
       href: "/notificacao-extrajudicial-cobranca"
     },
     {
@@ -403,11 +403,11 @@ export default function FreelasPage() {
               </div>
               
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight tracking-tight">
-                Infraestrutura digital para formalizar relações profissionais
+                Infraestrutura digital para formalizar relaÃ§Ãµes profissionais
               </h1>
               
               <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
-                Registre acordos, preserve evidências verificáveis e utilize notificações formais quando necessário.
+                Registre acordos, preserve evidÃªncias verificÃ¡veis e utilize notificaÃ§Ãµes formais quando necessÃ¡rio.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -688,7 +688,7 @@ export default function FreelasPage() {
           
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
-              © 2024 PreJud. Todos os direitos reservados.
+              Â© 2024 PreJud. Todos os direitos reservados.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-white transition-colors">Termos</a>

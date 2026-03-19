@@ -109,7 +109,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
   const router = useRouter();
 
   const isLoggedIn = !!user;
-  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário';
+  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'UsuÃ¡rio';
   const userEmail = user?.email || '';
 
   const handleLogout = async (): Promise<void> => {
@@ -133,86 +133,86 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
     {
       icon: FileSearch,
       number: "1",
-      title: "Reúna as provas",
+      title: "ReÃºna as provas",
       description: "Separe mensagens, e-mails, arquivos, comprovantes e qualquer documento que demonstre o combinado."
     },
     {
       icon: FileText,
       number: "2",
       title: "Revise o acordo",
-      description: "Confirme valor, prazo, escopo e forma de pagamento para evitar cobrança confusa."
+      description: "Confirme valor, prazo, escopo e forma de pagamento para evitar cobranÃ§a confusa."
     },
     {
       icon: MessageSquare,
       number: "3",
-      title: "Faça uma cobrança objetiva",
-      description: "Envie uma mensagem clara, educada e direta, informando o que está pendente."
+      title: "FaÃ§a uma cobranÃ§a objetiva",
+      description: "Envie uma mensagem clara, educada e direta, informando o que estÃ¡ pendente."
     },
     {
       icon: Send,
       number: "4",
-      title: "Formalize a cobrança",
-      description: "Se não houver retorno, uma cobrança formal pode aumentar muito a chance de resolução."
+      title: "Formalize a cobranÃ§a",
+      description: "Se nÃ£o houver retorno, uma cobranÃ§a formal pode aumentar muito a chance de resoluÃ§Ã£o."
     }
   ];
 
   const errorCards: ErrorCard[] = [
     {
       icon: AlertCircle,
-      title: "Cobrar sem organização",
-      description: "Falar de forma vaga enfraquece a cobrança."
+      title: "Cobrar sem organizaÃ§Ã£o",
+      description: "Falar de forma vaga enfraquece a cobranÃ§a."
     },
     {
       icon: MessageSquare,
-      title: "Misturar emoção com prova",
-      description: "Quanto mais emocional a conversa, menor a chance de solução objetiva."
+      title: "Misturar emoÃ§Ã£o com prova",
+      description: "Quanto mais emocional a conversa, menor a chance de soluÃ§Ã£o objetiva."
     },
     {
       icon: FileText,
-      title: "Não registrar o combinado",
-      description: "Sem prova, a cobrança perde força."
+      title: "NÃ£o registrar o combinado",
+      description: "Sem prova, a cobranÃ§a perde forÃ§a."
     },
     {
       icon: Clock3,
       title: "Esperar tempo demais",
-      description: "Quanto mais o tempo passa, mais difícil fica resolver."
+      description: "Quanto mais o tempo passa, mais difÃ­cil fica resolver."
     }
   ];
 
   const features: Feature[] = [
     {
       icon: Hash,
-      title: "Registro digital verificável",
+      title: "Registro digital verificÃ¡vel",
       description: "Cada acordo recebe hash SHA-256."
     },
     {
       icon: Eye,
-      title: "Protocolo rastreável",
-      description: "Todas as ações recebem número de protocolo."
+      title: "Protocolo rastreÃ¡vel",
+      description: "Todas as aÃ§Ãµes recebem nÃºmero de protocolo."
     },
     {
       icon: History,
-      title: "Histórico completo",
-      description: "Acordos, notificações e respostas ficam registrados."
+      title: "HistÃ³rico completo",
+      description: "Acordos, notificaÃ§Ãµes e respostas ficam registrados."
     }
   ];
 
   const faqItems: FAQItem[] = [
     {
       question: "Como cobrar um cliente sem parecer agressivo?",
-      answer: "A melhor forma é usar uma comunicação clara, objetiva e baseada no combinado."
+      answer: "A melhor forma Ã© usar uma comunicaÃ§Ã£o clara, objetiva e baseada no combinado."
     },
     {
-      question: "Posso cobrar cliente que não pagou mesmo sem contrato?",
+      question: "Posso cobrar cliente que nÃ£o pagou mesmo sem contrato?",
       answer: "Sim, mensagens, e-mails e outros registros podem ajudar a comprovar o acordo."
     },
     {
-      question: "Quando vale formalizar a cobrança?",
-      answer: "Quando o cliente deixa de responder, adia demais ou não cumpre o pagamento prometido."
+      question: "Quando vale formalizar a cobranÃ§a?",
+      answer: "Quando o cliente deixa de responder, adia demais ou nÃ£o cumpre o pagamento prometido."
     },
     {
       question: "O PreJud serve para freelancer?",
-      answer: "Sim, o PreJud pode ajudar freelancers e prestadores de serviço a registrar acordos e cobrar de forma mais profissional."
+      answer: "Sim, o PreJud pode ajudar freelancers e prestadores de serviÃ§o a registrar acordos e cobrar de forma mais profissional."
     }
   ];
 
@@ -242,7 +242,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
             </div>
 
             <nav className="hidden md:flex items-center gap-8">
-              <a href="#dificuldade" className="text-sm text-gray-400 hover:text-white transition-colors">Por Que É Difícil</a>
+              <a href="#dificuldade" className="text-sm text-gray-400 hover:text-white transition-colors">Por Que Ã‰ DifÃ­cil</a>
               <a href="#passos" className="text-sm text-gray-400 hover:text-white transition-colors">Passos</a>
               <a href="#erros" className="text-sm text-gray-400 hover:text-white transition-colors">Erros</a>
               <a href="#como-ajuda" className="text-sm text-gray-400 hover:text-white transition-colors">Como Ajuda</a>
@@ -306,7 +306,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
                               className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                             >
                               <Settings size={16} />
-                              Configurações
+                              ConfiguraÃ§Ãµes
                             </Link>
                             <div className="my-1 border-t border-white/10"></div>
                             <button
@@ -346,7 +346,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
 
         {mobileMenuOpen && (
           <div className="md:hidden bg-[#0B0B0D] border-t border-white/5 px-6 py-4 space-y-4">
-            <a href="#dificuldade" className="block text-gray-400 hover:text-white">Por Que É Difícil</a>
+            <a href="#dificuldade" className="block text-gray-400 hover:text-white">Por Que Ã‰ DifÃ­cil</a>
             <a href="#passos" className="block text-gray-400 hover:text-white">Passos</a>
             <a href="#erros" className="block text-gray-400 hover:text-white">Erros</a>
             <a href="#como-ajuda" className="block text-gray-400 hover:text-white">Como Ajuda</a>
@@ -380,16 +380,16 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
             <div className="space-y-8">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-500/10 border border-orange-500/20 text-orange-400 text-xs font-medium">
                 <DollarSign size={12} />
-                Guia de cobrança
+                Guia de cobranÃ§a
               </div>
               
               <h1 className="text-4xl lg:text-6xl font-bold leading-tight tracking-tight">
-                Como cobrar cliente que não paga{" "}
+                Como cobrar cliente que nÃ£o paga{" "}
                 <span className="text-purple-400">de forma profissional</span>.
               </h1>
               
               <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
-                Veja formas práticas de cobrar um cliente inadimplente, proteger o acordo e evitar discussões intermináveis.
+                Veja formas prÃ¡ticas de cobrar um cliente inadimplente, proteger o acordo e evitar discussÃµes interminÃ¡veis.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -411,7 +411,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
               <div className="flex items-center gap-6 text-sm text-gray-500">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
-                  Cobrança mais profissional
+                  CobranÃ§a mais profissional
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-green-500 rounded-full" />
@@ -426,7 +426,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
                   <div className="w-3 h-3 rounded-full bg-red-500/20" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
                   <div className="w-3 h-3 rounded-full bg-green-500/20" />
-                  <span className="ml-4 text-xs text-gray-500">Cobrança Formal</span>
+                  <span className="ml-4 text-xs text-gray-500">CobranÃ§a Formal</span>
                 </div>
                 
                 <div className="space-y-4">
@@ -441,7 +441,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
                   <div className="p-4 bg-white/5 rounded-lg">
                     <div className="flex justify-between items-start mb-2">
                       <div>
-                        <p className="text-sm font-medium">Cobrança formal enviada</p>
+                        <p className="text-sm font-medium">CobranÃ§a formal enviada</p>
                         <p className="text-xs text-gray-500">Via PreJud</p>
                       </div>
                       <span className="px-2 py-1 bg-yellow-500/20 text-yellow-400 text-xs rounded">Enviada</span>
@@ -471,24 +471,24 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
         </div>
       </section>
 
-      {/* Seção 1: Por Que É Tão Difícil */}
+      {/* SeÃ§Ã£o 1: Por Que Ã‰ TÃ£o DifÃ­cil */}
       <section id="dificuldade" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-              Por que cobrar um cliente inadimplente é tão difícil?
+              Por que cobrar um cliente inadimplente Ã© tÃ£o difÃ­cil?
             </h2>
             <p className="text-lg text-gray-400 leading-relaxed mb-8">
               Muitos profissionais fecham trabalhos apenas por mensagem, sem contrato claro, prazo definido ou registro formal do combinado. 
-              Quando o pagamento atrasa, a cobrança vira uma sequência de mensagens, promessas e desgaste.
+              Quando o pagamento atrasa, a cobranÃ§a vira uma sequÃªncia de mensagens, promessas e desgaste.
             </p>
           </div>
 
           <div className="grid md:grid-cols-2 gap-4 mb-8">
             {[
               "acordo informal",
-              "cliente que visualiza e não responde",
-              "pagamento prometido e não realizado",
+              "cliente que visualiza e nÃ£o responde",
+              "pagamento prometido e nÃ£o realizado",
               "medo de perder o relacionamento comercial"
             ].map((item, idx) => (
               <div key={idx} className="flex items-center gap-3 p-4 bg-white/[0.02] rounded-lg border border-white/5">
@@ -500,17 +500,17 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
 
           <div className="p-6 rounded-2xl bg-orange-500/5 border border-orange-500/20">
             <p className="text-gray-300 text-center">
-              Sem um registro claro, a cobrança fica frágil e a conversa pode se transformar em <span className="text-orange-400 font-semibold">conflito</span>.
+              Sem um registro claro, a cobranÃ§a fica frÃ¡gil e a conversa pode se transformar em <span className="text-orange-400 font-semibold">conflito</span>.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Seção 2: Passos Práticos */}
+      {/* SeÃ§Ã£o 2: Passos PrÃ¡ticos */}
       <section id="passos" className="py-20 lg:py-32 bg-[#0B0B0D]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Passos para cobrar um cliente que não paga</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Passos para cobrar um cliente que nÃ£o paga</h2>
             <p className="text-gray-400 max-w-2xl mx-auto">Um fluxo estruturado aumenta suas chances de receber.</p>
           </div>
 
@@ -534,12 +534,12 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
         </div>
       </section>
 
-      {/* Seção 3: Erros Comuns */}
+      {/* SeÃ§Ã£o 3: Erros Comuns */}
       <section id="erros" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Erros comuns ao cobrar um cliente</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Evite estas armadilhas para manter sua cobrança efetiva.</p>
+            <p className="text-gray-400 max-w-2xl mx-auto">Evite estas armadilhas para manter sua cobranÃ§a efetiva.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -559,7 +559,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
         </div>
       </section>
 
-      {/* Seção 4: Como o PreJud Ajuda */}
+      {/* SeÃ§Ã£o 4: Como o PreJud Ajuda */}
       <section id="como-ajuda" className="py-20 lg:py-32 bg-[#0B0B0D]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-16">
@@ -568,7 +568,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
                 Uma forma mais estruturada de cobrar
               </h2>
               <p className="text-lg text-gray-400 leading-relaxed">
-                O PreJud permite registrar acordos, gerar prova com hash criptográfico e enviar cobranças formais com rastreabilidade completa.
+                O PreJud permite registrar acordos, gerar prova com hash criptogrÃ¡fico e enviar cobranÃ§as formais com rastreabilidade completa.
               </p>
             </div>
             <div className="flex justify-center">
@@ -596,12 +596,12 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
         </div>
       </section>
 
-      {/* Seção 5: FAQ */}
+      {/* SeÃ§Ã£o 5: FAQ */}
       <section id="faq" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-3xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Perguntas frequentes</h2>
-            <p className="text-gray-400">Respostas rápidas sobre cobrança de clientes.</p>
+            <p className="text-gray-400">Respostas rÃ¡pidas sobre cobranÃ§a de clientes.</p>
           </div>
 
           <div className="space-y-4">
@@ -635,7 +635,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
       <section className="py-20 lg:py-32 bg-gradient-to-b from-purple-900/20 to-[#0B0B0D]">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-5xl font-bold mb-6">
-            Proteja seus próximos acordos
+            Proteja seus prÃ³ximos acordos
           </h2>
           <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
             Registre acordos e tenha uma forma profissional de cobrar clientes e resolver conflitos.
@@ -671,7 +671,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
                 <span className="text-xl font-semibold">PreJud</span>
               </div>
               <p className="text-sm text-gray-500">
-                Notificação extrajudicial com integridade digital garantida.
+                NotificaÃ§Ã£o extrajudicial com integridade digital garantida.
               </p>
             </div>
             
@@ -679,13 +679,13 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
               <h4 className="font-semibold mb-4">Produto</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Preços</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">PreÃ§os</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Jurídico</h4>
+              <h4 className="font-semibold mb-4">JurÃ­dico</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
@@ -704,7 +704,7 @@ export default function ComoCobrarClienteQueNaoPagaPage() {
           
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
-              © 2024 PreJud. Todos os direitos reservados.
+              Â© 2024 PreJud. Todos os direitos reservados.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-white transition-colors">Termos</a>

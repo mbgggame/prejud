@@ -22,7 +22,9 @@ import {
   increment,
   deleteDoc
 } from 'firebase/firestore';
+import { limit } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
+import { auth } from '@/services/firebase';
 import type {
   Agreement,
   TimelineEvent,
@@ -638,6 +640,8 @@ export async function createAgreement(
 
   const agreementData = {
     ...data,
+    createdBy: auth.currentUser?.uid,
+    userId: auth.currentUser?.uid,
     protocol,
     clientAccessToken,
     timeline: [],
@@ -650,7 +654,7 @@ export async function createAgreement(
     type: 'agreement_created',
     actorType: 'freelancer',
     actorName: data.freelancerName,
-    actorId: data.freelancerId,
+    actorId: auth.currentUser?.uid,
     title: 'Acordo criado',
     description: `Acordo "${data.title}" foi formalizado`,
     metadata: {
@@ -686,15 +690,7 @@ export async function createAgreement(
     ),
     
     // WhatsApp (apenas se tiver telefone)
-    data.clientPhone 
-      ? sendAgreementInvitationWhatsApp(
-          data.clientPhone,
-          data.clientName,
-          data.freelancerName,
-          data.title,
-          confirmationLink
-        )
-      : Promise.resolve({ success: true, skipped: true })
+    Promise.resolve({ success: true, skipped: true })
   ];
 
   const [emailResult, whatsappResult] = await Promise.allSettled(notificationPromises);
@@ -881,3 +877,29 @@ export async function sendAgreementInvitationEmail(
 
 
 export { transitionStatus } from './agreementStatus';
+
+/**
+ * Busca acordo pelo protocolo (para acesso publico)
+ */
+export async function getAgreementByProtocol(protocol: string): Promise<Agreement | null> {
+  const agreementsRef = collection(db, COLLECTIONS.AGREEMENTS);
+  const q = query(agreementsRef, where("protocol", "==", protocol), limit(1));
+  const querySnapshot = await getDocs(q);
+  
+  if (querySnapshot.empty) {
+    return null;
+  }
+  
+  const docSnap = querySnapshot.docs[0];
+  const data = docSnap.data();
+  
+  return {
+    id: docSnap.id,
+    ...data,
+    deadline: data.deadline?.toDate?.() || data.deadline,
+    createdAt: data.createdAt?.toDate?.() || data.createdAt,
+    updatedAt: data.updatedAt?.toDate?.() || data.updatedAt,
+    timeline: data.timeline || []
+  } as Agreement;
+}
+

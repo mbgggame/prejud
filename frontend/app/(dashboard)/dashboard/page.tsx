@@ -1,4 +1,4 @@
-﻿﻿"use client";
+﻿"use client";
 
 import React from "react";
 
@@ -79,6 +79,7 @@ interface Record {
   createdAt?: any;
   hash?: string;
   events?: EventType[];
+  clientAccessToken?: string;
 }
 
 type EventType = {
@@ -441,11 +442,13 @@ export default function DashboardPage() {
     );
   }, []);
 
-  async function handleCopyLink(protocol: string, id: string) {
+  async function handleCopyLink(protocol: string, id: string, token?: string) {
     if (!protocol?.trim()) return;
 
     try {
-      const publicUrl = `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
+      const publicUrl = token
+        ? `${window.location.origin}/p/${encodeURIComponent(protocol)}?t=${encodeURIComponent(token)}`
+        : `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
       await navigator.clipboard.writeText(publicUrl);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 3000);
@@ -454,9 +457,11 @@ export default function DashboardPage() {
     }
   }
 
-  function handleOpenPublic(protocol: string) {
+  function handleOpenPublic(protocol: string, token?: string) {
     if (!protocol?.trim()) return;
-    const publicUrl = `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
+    const publicUrl = token
+      ? `${window.location.origin}/p/${encodeURIComponent(protocol)}?t=${encodeURIComponent(token)}`
+      : `${window.location.origin}/p/${encodeURIComponent(protocol)}`;
     window.open(publicUrl, "_blank");
   }
 
@@ -498,6 +503,7 @@ export default function DashboardPage() {
             createdAt: data.createdAt,
             hash: data.hash,
             events: data.events || [],
+            clientAccessToken: data.clientAccessToken,
           });
         });
 
@@ -996,7 +1002,7 @@ export default function DashboardPage() {
 
                     {record.protocol && (
                       <button
-                        onClick={() => handleCopyLink(record.protocol, record.id)}
+                        onClick={() => handleCopyLink(record.protocol, record.id, record.clientAccessToken)}
                         disabled={copiedId === record.id}
                         className={`flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 disabled:bg-emerald-500/20 border border-white/10 text-sm rounded-full transition-all whitespace-nowrap ${
                           copiedId === record.id
@@ -1017,7 +1023,7 @@ export default function DashboardPage() {
 
                     {record.protocol && (
                       <button
-                        onClick={() => handleOpenPublic(record.protocol)}
+                        onClick={() => handleOpenPublic(record.protocol, record.clientAccessToken)}
                         className="flex items-center gap-1 px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-300 text-sm rounded-full transition-all whitespace-nowrap"
                       >
                         <ExternalLink className="w-4 h-4" />

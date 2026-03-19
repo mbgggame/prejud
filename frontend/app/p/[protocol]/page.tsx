@@ -1,298 +1,251 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import {
-  collection,
-  doc,
-  getDoc,
-  getDocs,
-  query,
-  serverTimestamp,
-  updateDoc,
-  where,
-  orderBy,
-  Timestamp,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { useEffect, useState } from "react";
+import { getAgreementByProtocol, processPublicAgreementConfirmation } from "@/services/firebaseAgreementService";
+import { Agreement } from "@/types/agreement";
+import Link from "next/link";
+import { Loader2, AlertCircle, CheckCircle, XCircle, Shield, FileText, User, Mail, DollarSign, Calendar } from "lucide-react";
 
-type AgreementStatus =
-  | "draft"
-  | "pending_client_confirmation"
-  | "confirmed"
-  | "rejected"
-  | "contested"
-  | "in_adjustment"
-  | "deadline_extension_pending"
-  | "amendment_pending"
-  | "charge_open"
-  | "charge_contested"
-  | "notice_sent"
-  | "in_dispute"
-  | "closed";
-
-type AgreementEvent = {
-  id: string;
-  type?: string;
-  description?: string;
-  createdAt?: Timestamp | Date | null;
-  actorName?: string;
-  actorId?: string;
-};
-
-type Agreement = {
-  id: string;
-  title?: string;
-  freelancerId?: string;
-  freelancerName?: string;
-  clientName?: string;
-  clientEmail?: string;
-  clientDocument?: string;
-  serviceType?: string;
-  description?: string;
-  value?: number;
-  deadline?: string;
-  terms?: string;
-  status?: AgreementStatus;
-  protocol?: string;
-  hash?: string;
-  createdAt?: Timestamp | Date | null;
-  updatedAt?: Timestamp | Date | null;
-  timeline?: unknown[];
-  clientAccessToken?: string;
-};
-
-function formatMoney(value?: number) {
-  if (typeof value !== "number") return "—";
-  return value.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
-}
-
-function formatDate(value?: Timestamp | Date | null) {
-  if (!value) return "—";
-  const date = value instanceof Timestamp ? value.toDate() : value instanceof Date ? value : null;
-  if (!date) return "—";
-  return date.toLocaleString("pt-BR");
-}
-
-export default function PublicProposalPage() {
+export default function PublicAgreementPage() {
   const params = useParams();
   const searchParams = useSearchParams();
-
-  const agreementId = useMemo(() => {
-    const raw = params?.protocol;
-    return typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : "";
-  }, [params]);
-
-  const urlToken = searchParams.get("t") || "";
-
   const [agreement, setAgreement] = useState<Agreement | null>(null);
-  const [events, setEvents] = useState<AgreementEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
   const [actionLoading, setActionLoading] = useState(false);
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
 
-  const [isTokenValid, setIsTokenValid] = useState<boolean | null>(null);
+  const protocol = params.protocol as string;
+  const token = searchParams.get("t");
 
   useEffect(() => {
-    if (!agreementId) {
-      setLoading(false);
-      setError("ID do acordo inválido.");
-      return;
-    }
+    if (!protocol) return;
 
-    async function loadData() {
+    const loadAgreement = async () => {
       try {
         setLoading(true);
-        setError(null);
-        setActionError(null);
-        setActionSuccess(null);
-
-        const agreementRef = doc(db, "agreements", agreementId);
-        const agreementSnap = await getDoc(agreementRef);
-
-        if (!agreementSnap.exists()) {
-          setAgreement(null);
-          setIsTokenValid(false);
-          setError("Proposta não encontrada.");
+        // Busca acordo pelo protocolo
+        const data = await getAgreementByProtocol(protocol);
+        if (!data) {
+          setError("Acordo nao encontrado ou link invalido");
           return;
         }
-
-        const agreementData = agreementSnap.data() as Omit<Agreement, "id">;
-        const agreementWithId: Agreement = { id: agreementSnap.id, ...agreementData };
-        setAgreement(agreementWithId);
-
-        const tokenIsValid = !!urlToken && !!agreementWithId.clientAccessToken && urlToken === agreementWithId.clientAccessToken;
-        setIsTokenValid(tokenIsValid);
-
-        const eventsRef = collection(db, "agreement_events");
-        const eventsQuery = query(eventsRef, where("agreementId", "==", agreementSnap.id), orderBy("createdAt", "asc"));
-        const eventsSnap = await getDocs(eventsQuery);
-        const eventsData: AgreementEvent[] = eventsSnap.docs.map((item) => ({
-          id: item.id,
-          ...(item.data() as Omit<AgreementEvent, "id">),
-        }));
-        setEvents(eventsData);
+        // Verifica se o token eh valido
+        if (data.clientAccessToken !== token) {
+          setError("Token de acesso invalido");
+          return;
+        }
+        setAgreement(data);
       } catch (err) {
-        console.error("Erro ao carregar proposta pública:", err);
-        setError("Não foi possível carregar a proposta.");
+        setError(err instanceof Error ? err.message : "Erro ao carregar acordo");
       } finally {
         setLoading(false);
       }
-    }
+    };
 
-    loadData();
-  }, [agreementId, urlToken]);
+    loadAgreement();
+  }, [protocol, token]);
 
-  const canAct = !!agreement && isTokenValid === true && agreement.status === "pending_client_confirmation" && !actionLoading;
-
-  async function handleAccept() {
-    if (!agreement || !canAct) return;
+  const handleConfirm = async () => {
+    if (!agreement) return;
+    setActionLoading(true);
     try {
-      setActionLoading(true);
-      setActionError(null);
-      setActionSuccess(null);
-      const agreementRef = doc(db, "agreements", agreement.id);
-      await updateDoc(agreementRef, { status: "confirmed", updatedAt: serverTimestamp() });
-      setAgreement((prev) => prev ? { ...prev, status: "confirmed" } : prev);
-      setActionSuccess("Proposta aceita com sucesso.");
+      await processPublicAgreementConfirmation(agreement.id, "accept");
+      setAgreement({ ...agreement, status: "confirmed" });
     } catch (err) {
-      console.error("Erro ao aceitar proposta:", err);
-      setActionError("Não foi possível aceitar a proposta.");
+      setError(err instanceof Error ? err.message : "Erro ao confirmar acordo");
     } finally {
       setActionLoading(false);
     }
-  }
+  };
 
-  async function handleReject() {
-    if (!agreement || !canAct) return;
+  const handleContest = async () => {
+    if (!agreement) return;
+    setActionLoading(true);
     try {
-      setActionLoading(true);
-      setActionError(null);
-      setActionSuccess(null);
-      const agreementRef = doc(db, "agreements", agreement.id);
-      await updateDoc(agreementRef, { status: "rejected", updatedAt: serverTimestamp() });
-      setAgreement((prev) => prev ? { ...prev, status: "rejected" } : prev);
-      setActionSuccess("Proposta recusada com sucesso.");
+      await processPublicAgreementConfirmation(agreement.id, "reject");
+      setAgreement({ ...agreement, status: "contested" });
     } catch (err) {
-      console.error("Erro ao recusar proposta:", err);
-      setActionError("Não foi possível recusar a proposta.");
+      setError(err instanceof Error ? err.message : "Erro ao contestar acordo");
     } finally {
       setActionLoading(false);
     }
-  }
+  };
 
   if (loading) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
-        <p>Carregando proposta...</p>
-      </main>
+      <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
+      </div>
     );
   }
 
   if (error) {
     return (
-      <main className="mx-auto max-w-4xl p-6">
-        <h1 className="mb-4 text-3xl font-bold">Algo deu errado</h1>
-        <p className="text-red-600">{error}</p>
-      </main>
+      <div className="min-h-screen bg-[#0B0B0D] flex items-center justify-center">
+        <div className="text-center max-w-md mx-auto px-4">
+          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+          <p className="text-white mb-4">{error}</p>
+          <Link href="/" className="text-emerald-500 hover:underline">
+            Voltar para o inicio
+          </Link>
+        </div>
+      </div>
     );
   }
 
-  if (!agreement) {
-    return (
-      <main className="mx-auto max-w-4xl p-6">
-        <h1 className="mb-4 text-3xl font-bold">Proposta não encontrada</h1>
-      </main>
-    );
-  }
+  if (!agreement) return null;
+
+  const isPending = agreement.status === "pending_client_confirmation";
+  const isActive = agreement.status === "confirmed";
+  const isDisputed = agreement.status === "contested";
 
   return (
-    <main className="mx-auto max-w-4xl p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold">{agreement.title || "Proposta"}</h1>
-        <p className="mt-2 text-sm text-gray-600">Protocolo: {agreement.protocol || "—"}</p>
-      </div>
-
-      <section className="mb-6 rounded-xl border p-4">
-        <h2 className="mb-3 text-xl font-semibold">Resumo</h2>
-        <div className="grid gap-3 md:grid-cols-2">
-          <p><strong>Freelancer:</strong> {agreement.freelancerName || "—"}</p>
-          <p><strong>Cliente:</strong> {agreement.clientName || "—"}</p>
-          <p><strong>Email:</strong> {agreement.clientEmail || "—"}</p>
-          <p><strong>Serviço:</strong> {agreement.serviceType || "—"}</p>
-          <p><strong>Valor:</strong> {formatMoney(agreement.value)}</p>
-          <p><strong>Prazo:</strong> {agreement.deadline || "—"}</p>
-          <p><strong>Status:</strong> {agreement.status || "—"}</p>
-          <p><strong>Atualizado em:</strong> {formatDate(agreement.updatedAt)}</p>
+    <div className="min-h-screen bg-[#0B0B0D]">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0B0B0D]/90 backdrop-blur-md border-b border-white/10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-xl font-bold text-white">
+              PreJud
+            </Link>
+            <div className="text-sm text-gray-400">
+              Protocolo: <span className="font-mono text-emerald-500">{agreement.protocol}</span>
+            </div>
+          </div>
         </div>
-      </section>
+      </header>
 
-      <section className="mb-6 rounded-xl border p-4">
-        <h2 className="mb-3 text-xl font-semibold">Descrição</h2>
-        <p className="whitespace-pre-wrap">{agreement.description || "—"}</p>
-      </section>
+      <main className="pt-24 pb-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-[#1A1A1D] rounded-2xl border border-white/10 overflow-hidden">
+            <div className="p-6 border-b border-white/10">
+              <h1 className="text-2xl font-bold text-white flex items-center gap-3">
+                <Shield className="w-8 h-8 text-emerald-500" />
+                Proposta de Acordo
+              </h1>
+              <p className="text-gray-400 mt-2">
+                Voce recebeu uma proposta de acordo profissional. Revise os detalhes abaixo.
+              </p>
+            </div>
 
-      <section className="mb-6 rounded-xl border p-4">
-        <h2 className="mb-3 text-xl font-semibold">Termos</h2>
-        <p className="whitespace-pre-wrap">{agreement.terms || "—"}</p>
-      </section>
+            <div className="p-6 space-y-6">
+              <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+                <div className="flex items-center gap-2 text-emerald-500 font-semibold">
+                  <FileText className="w-5 h-5" />
+                  {agreement.title}
+                </div>
+              </div>
 
-      <section className="mb-6 rounded-xl border p-4">
-        <h2 className="mb-3 text-xl font-semibold">Timeline</h2>
-        {events.length === 0 ? (
-          <p>Nenhum evento encontrado.</p>
-        ) : (
-          <div className="space-y-3">
-            {events.map((event) => (
-              <div key={event.id} className="rounded-lg border p-3">
-                <p className="font-medium">{event.type || "Evento"}</p>
-                <p className="text-sm text-gray-600">{event.description || "Sem descrição"}</p>
-                <p className="mt-1 text-xs text-gray-500">
-                  {formatDate(event.createdAt)} {event.actorName ? `• ${event.actorName}` : ""}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Profissional
+                  </label>
+                  <p className="text-white bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3">
+                    {agreement.freelancerName}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500 flex items-center gap-2">
+                    <Mail className="w-4 h-4" />
+                    Email do Profissional
+                  </label>
+                  <p className="text-white bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3">
+                    {agreement.freelancerId}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500 flex items-center gap-2">
+                    <DollarSign className="w-4 h-4" />
+                    Valor
+                  </label>
+                  <p className="text-white bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3">
+                    R$ {agreement.value?.toFixed(2)}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm text-gray-500 flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Prazo de Entrega
+                  </label>
+                  <p className="text-white bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3">
+                    {agreement.deadline ? new Date(agreement.deadline).toLocaleDateString("pt-BR") : "-"}
+                  </p>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm text-gray-500">Descricao do Servico</label>
+                <p className="text-gray-300 bg-[#0B0B0D] border border-white/10 rounded-lg px-4 py-3 min-h-[100px]">
+                  {agreement.description}
                 </p>
               </div>
-            ))}
+
+              <div className="border-t border-white/10 pt-6">
+                <h3 className="text-lg font-semibold text-white mb-4">Status da Proposta</h3>
+                
+                {isPending && (
+                  <div className="space-y-4">
+                    <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-4">
+                      <p className="text-yellow-500 text-center">
+                        Aguardando sua confirmacao
+                      </p>
+                    </div>
+                    <div className="flex gap-4">
+                      <button
+                        onClick={handleConfirm}
+                        disabled={actionLoading}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 disabled:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        {actionLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <CheckCircle className="w-5 h-5" />
+                        )}
+                        Confirmar Acordo
+                      </button>
+                      <button
+                        onClick={handleContest}
+                        disabled={actionLoading}
+                        className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+                      >
+                        {actionLoading ? (
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                          <XCircle className="w-5 h-5" />
+                        )}
+                        Contestar
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {isActive && (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-emerald-500 justify-center">
+                      <CheckCircle className="w-5 h-5" />
+                      Acordo confirmado com sucesso!
+                    </div>
+                  </div>
+                )}
+
+                {isDisputed && (
+                  <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+                    <div className="flex items-center gap-2 text-red-500 justify-center">
+                      <XCircle className="w-5 h-5" />
+                      Acordo em disputa
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        )}
-      </section>
-
-      {isTokenValid === false && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          Link inválido, incompleto ou expirado.
         </div>
-      )}
-
-      {agreement.status !== "pending_client_confirmation" && (
-        <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4 text-yellow-800">
-          Esta proposta já foi processada e não pode mais ser alterada.
-        </div>
-      )}
-
-      {actionError && (
-        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 text-red-700">
-          {actionError}
-        </div>
-      )}
-
-      {actionSuccess && (
-        <div className="mb-4 rounded-lg border border-green-200 bg-green-50 p-4 text-green-700">
-          {actionSuccess}
-        </div>
-      )}
-
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-blue-800">
-        <p className="font-medium">Confirmação digital em implantação</p>
-        <p className="text-sm mt-1">
-          Em breve será possível aceitar ou recusar propostas diretamente por este link. 
-          Para formalizar o acordo, entre em contato com o freelancer.
-        </p>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }

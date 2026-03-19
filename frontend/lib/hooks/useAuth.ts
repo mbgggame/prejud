@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Hook useAuth - Mock para PreJud SaaS
  * Autenticacao simplificada para desenvolvimento
  */
@@ -25,7 +25,7 @@ export function useAuth(): UseAuthReturn {
   useEffect(() => {
     // Mock de usuario autenticado para desenvolvimento
     const mockUser: User = {
-      uid: 'dev-user-' + Date.now(),
+      uid: 'dev-user-fixed-001',
       email: 'dev@prejud.com',
       displayName: 'Dev User'
     };

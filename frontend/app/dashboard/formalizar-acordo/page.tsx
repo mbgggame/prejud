@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { submitAgreement } from "@/services/agreementServiceAdapter";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { useAuth } from "@/contexts/AuthContext";
 import { ServiceType } from "@/types/agreement";
 import {
   ArrowLeft,
@@ -104,7 +104,9 @@ export default function FormalizarAcordoPage() {
         hash: "temp-hash-" + Date.now(),
       };
 
-      await submitAgreement(agreementData);
+      const createdAgreement = await submitAgreement(agreementData);
+setLoading(false);
+router.push(`/dashboard/acordos/${createdAgreement.id}`);
       setLoading(false);
       router.push("/dashboard");
     } catch (error) {

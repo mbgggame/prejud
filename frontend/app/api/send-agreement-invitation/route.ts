@@ -1,4 +1,4 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { sendAgreementInvitation } from '@/lib/resend';
 
 export async function POST(request: NextRequest) {
@@ -29,7 +29,8 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, result });
   } catch (error) {
-    console.error('Erro ao enviar email de convite:', error);
+    console.error('Erro ao enviar email de convite RAW:', error);
+    console.error('Erro serializado:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
     return NextResponse.json(
       { success: false, error: 'Failed to send email' },
       { status: 500 }

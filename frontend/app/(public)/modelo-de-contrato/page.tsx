@@ -93,7 +93,7 @@ export default function ModeloContratoFreelancerPage() {
   const router = useRouter();
 
   const isLoggedIn = !!user;
-  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário';
+  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'UsuÃ¡rio';
   const userEmail = user?.email || '';
 
   const handleLogout = async (): Promise<void> => {
@@ -122,35 +122,35 @@ export default function ModeloContratoFreelancerPage() {
     {
       icon: FileCheck,
       title: "Escopo mal definido",
-      description: "Mudanças no projeto geram conflitos."
+      description: "MudanÃ§as no projeto geram conflitos."
     },
     {
       icon: DollarSign,
-      title: "Pagamento não combinado",
+      title: "Pagamento nÃ£o combinado",
       description: "Falta de clareza sobre valores e prazos."
     },
     {
       icon: UserX,
       title: "Cliente desaparece",
-      description: "Após a entrega, o pagamento não acontece."
+      description: "ApÃ³s a entrega, o pagamento nÃ£o acontece."
     }
   ];
 
   const features: Feature[] = [
     {
       icon: Hash,
-      title: "Registro digital verificável",
+      title: "Registro digital verificÃ¡vel",
       description: "Cada acordo recebe um hash SHA-256."
     },
     {
       icon: Eye,
-      title: "Protocolo rastreável",
-      description: "Todas as ações recebem número de protocolo."
+      title: "Protocolo rastreÃ¡vel",
+      description: "Todas as aÃ§Ãµes recebem nÃºmero de protocolo."
     },
     {
       icon: History,
-      title: "Histórico completo",
-      description: "Acordos, notificações e respostas ficam registrados."
+      title: "HistÃ³rico completo",
+      description: "Acordos, notificaÃ§Ãµes e respostas ficam registrados."
     }
   ];
 
@@ -244,7 +244,7 @@ export default function ModeloContratoFreelancerPage() {
                               className="flex items-center gap-3 px-4 py-2 text-sm text-gray-300 hover:text-white hover:bg-white/5 transition-colors"
                             >
                               <Settings size={16} />
-                              Configurações
+                              ConfiguraÃ§Ãµes
                             </Link>
                             <div className="my-1 border-t border-white/10"></div>
                             <button
@@ -327,7 +327,7 @@ export default function ModeloContratoFreelancerPage() {
               </h1>
               
               <p className="text-lg text-gray-400 max-w-xl leading-relaxed">
-                Veja como criar um contrato básico para proteger seus trabalhos e evitar problemas de pagamento.
+                Veja como criar um contrato bÃ¡sico para proteger seus trabalhos e evitar problemas de pagamento.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4">
@@ -364,7 +364,7 @@ export default function ModeloContratoFreelancerPage() {
                   <div className="w-3 h-3 rounded-full bg-red-500/20" />
                   <div className="w-3 h-3 rounded-full bg-yellow-500/20" />
                   <div className="w-3 h-3 rounded-full bg-green-500/20" />
-                  <span className="ml-4 text-xs text-gray-500">Contrato de Prestação de Serviços</span>
+                  <span className="ml-4 text-xs text-gray-500">Contrato de PrestaÃ§Ã£o de ServiÃ§os</span>
                 </div>
                 
                 <div className="space-y-4">
@@ -379,8 +379,8 @@ export default function ModeloContratoFreelancerPage() {
                   </div>
 
                   <div className="p-4 bg-white/5 rounded-lg">
-                    <p className="text-sm font-medium mb-2">Serviço contratado:</p>
-                    <p className="text-xs text-gray-400 mb-3">Descrição do trabalho a ser realizado</p>
+                    <p className="text-sm font-medium mb-2">ServiÃ§o contratado:</p>
+                    <p className="text-xs text-gray-400 mb-3">DescriÃ§Ã£o do trabalho a ser realizado</p>
                     
                     <div className="grid grid-cols-2 gap-3 text-xs">
                       <div>
@@ -397,7 +397,7 @@ export default function ModeloContratoFreelancerPage() {
                   <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
                     <div className="flex items-center gap-2 mb-1">
                       <CheckCircle size={14} className="text-purple-400" />
-                      <p className="text-xs text-purple-400">Hash de verificação</p>
+                      <p className="text-xs text-purple-400">Hash de verificaÃ§Ã£o</p>
                     </div>
                     <p className="text-xs font-mono text-gray-400 break-all">c4d8e1f5a2b9...</p>
                   </div>
@@ -411,7 +411,7 @@ export default function ModeloContratoFreelancerPage() {
         </div>
       </section>
 
-      {/* Seção 1: Por Que Usar Contrato */}
+      {/* SeÃ§Ã£o 1: Por Que Usar Contrato */}
       <section id="por-que-contrato" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
           <div className="mb-12">
@@ -419,8 +419,8 @@ export default function ModeloContratoFreelancerPage() {
               Por que usar contrato em trabalhos freelancer?
             </h2>
             <p className="text-lg text-gray-400 leading-relaxed mb-8">
-              Muitos trabalhos freelancer começam apenas com mensagens ou acordos verbais. 
-              Quando surgem conflitos sobre pagamento, prazo ou escopo, provar o combinado pode ser difícil.
+              Muitos trabalhos freelancer comeÃ§am apenas com mensagens ou acordos verbais. 
+              Quando surgem conflitos sobre pagamento, prazo ou escopo, provar o combinado pode ser difÃ­cil.
             </p>
           </div>
 
@@ -432,8 +432,8 @@ export default function ModeloContratoFreelancerPage() {
                   <DollarSign size={20} className="text-green-400" />
                 </div>
                 <div>
-                  <p className="font-medium mb-1">valor do serviço</p>
-                  <p className="text-sm text-gray-400">Evita discussões sobre quanto deve ser pago</p>
+                  <p className="font-medium mb-1">valor do serviÃ§o</p>
+                  <p className="text-sm text-gray-400">Evita discussÃµes sobre quanto deve ser pago</p>
                 </div>
               </div>
 
@@ -453,7 +453,7 @@ export default function ModeloContratoFreelancerPage() {
                 </div>
                 <div>
                   <p className="font-medium mb-1">escopo do trabalho</p>
-                  <p className="text-sm text-gray-400">O que está incluído e o que não está</p>
+                  <p className="text-sm text-gray-400">O que estÃ¡ incluÃ­do e o que nÃ£o estÃ¡</p>
                 </div>
               </div>
 
@@ -463,7 +463,7 @@ export default function ModeloContratoFreelancerPage() {
                 </div>
                 <div>
                   <p className="font-medium mb-1">forma de pagamento</p>
-                  <p className="text-sm text-gray-400">PIX, transferência, parcelamento, etc.</p>
+                  <p className="text-sm text-gray-400">PIX, transferÃªncia, parcelamento, etc.</p>
                 </div>
               </div>
             </div>
@@ -477,17 +477,17 @@ export default function ModeloContratoFreelancerPage() {
         </div>
       </section>
 
-      {/* Seção 2: Modelo de Contrato */}
+      {/* SeÃ§Ã£o 2: Modelo de Contrato */}
       <section id="modelo" className="py-20 lg:py-32 bg-[#0B0B0D]">
         <div className="max-w-4xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-12">
-            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Modelo básico de contrato freelancer</h2>
+            <h2 className="text-3xl lg:text-4xl font-bold mb-4">Modelo bÃ¡sico de contrato freelancer</h2>
             <p className="text-gray-400">Use esta estrutura como base para seus acordos.</p>
           </div>
 
           <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl p-8 border border-white/10 shadow-2xl">
             <div className="text-center mb-8 pb-6 border-b border-white/10">
-              <h3 className="text-xl font-bold text-purple-400 mb-2">CONTRATO DE PRESTAÇÃO DE SERVIÇOS FREELANCER</h3>
+              <h3 className="text-xl font-bold text-purple-400 mb-2">CONTRATO DE PRESTAÃ‡ÃƒO DE SERVIÃ‡OS FREELANCER</h3>
               <p className="text-sm text-gray-500">Modelo simplificado para proteger seu trabalho</p>
             </div>
 
@@ -507,9 +507,9 @@ export default function ModeloContratoFreelancerPage() {
               </div>
 
               <div className="p-4 bg-white/5 rounded-lg">
-                <p className="text-sm font-semibold mb-2">Serviço contratado:</p>
+                <p className="text-sm font-semibold mb-2">ServiÃ§o contratado:</p>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  [Descrição detalhada do trabalho a ser realizado, incluindo entregáveis específicos]
+                  [DescriÃ§Ã£o detalhada do trabalho a ser realizado, incluindo entregÃ¡veis especÃ­ficos]
                 </p>
               </div>
 
@@ -526,15 +526,15 @@ export default function ModeloContratoFreelancerPage() {
 
                 <div className="p-4 bg-white/5 rounded-lg text-center">
                   <p className="text-xs text-gray-500 mb-1">Forma de pagamento</p>
-                  <p className="text-lg font-semibold text-yellow-400">PIX/Transferência</p>
+                  <p className="text-lg font-semibold text-yellow-400">PIX/TransferÃªncia</p>
                 </div>
               </div>
 
               <div className="p-4 bg-yellow-500/5 rounded-lg border border-yellow-500/20">
-                <p className="text-sm font-semibold text-yellow-400 mb-2">Observações:</p>
+                <p className="text-sm font-semibold text-yellow-400 mb-2">ObservaÃ§Ãµes:</p>
                 <p className="text-sm text-gray-400 leading-relaxed">
-                  Qualquer alteração de escopo deve ser acordada entre as partes por escrito. 
-                  O pagamento deve ser realizado em até X dias após a entrega e aprovação do trabalho.
+                  Qualquer alteraÃ§Ã£o de escopo deve ser acordada entre as partes por escrito. 
+                  O pagamento deve ser realizado em atÃ© X dias apÃ³s a entrega e aprovaÃ§Ã£o do trabalho.
                 </p>
               </div>
 
@@ -553,18 +553,18 @@ export default function ModeloContratoFreelancerPage() {
 
           <div className="mt-8 text-center">
             <p className="text-gray-400 text-sm">
-              💡 <span className="text-purple-400">Dica:</span> Registre este acordo no PreJud para ter prova digital verificável.
+              ðŸ’¡ <span className="text-purple-400">Dica:</span> Registre este acordo no PreJud para ter prova digital verificÃ¡vel.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Seção 3: Erros Comuns */}
+      {/* SeÃ§Ã£o 3: Erros Comuns */}
       <section id="erros" className="py-20 lg:py-32 bg-[#0a0a0c] border-t border-white/5">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold mb-4">Erros comuns em acordos freelancer</h2>
-            <p className="text-gray-400 max-w-2xl mx-auto">Evite estas situações para proteger seus trabalhos.</p>
+            <p className="text-gray-400 max-w-2xl mx-auto">Evite estas situaÃ§Ãµes para proteger seus trabalhos.</p>
           </div>
 
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -584,16 +584,16 @@ export default function ModeloContratoFreelancerPage() {
         </div>
       </section>
 
-      {/* Seção 4: Como o PreJud Ajuda */}
+      {/* SeÃ§Ã£o 4: Como o PreJud Ajuda */}
       <section id="como-ajuda" className="py-20 lg:py-32 bg-[#0B0B0D]">
         <div className="max-w-7xl mx-auto px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center mb-16">
             <div>
               <h2 className="text-3xl lg:text-4xl font-bold mb-6">
-                Registre acordos freelancer com segurança
+                Registre acordos freelancer com seguranÃ§a
               </h2>
               <p className="text-lg text-gray-400 leading-relaxed">
-                O PreJud permite registrar acordos, gerar prova com hash criptográfico e enviar cobranças formais caso o pagamento não aconteça.
+                O PreJud permite registrar acordos, gerar prova com hash criptogrÃ¡fico e enviar cobranÃ§as formais caso o pagamento nÃ£o aconteÃ§a.
               </p>
             </div>
             <div className="flex justify-center">
@@ -625,7 +625,7 @@ export default function ModeloContratoFreelancerPage() {
       <section className="py-20 lg:py-32 bg-gradient-to-b from-purple-900/20 to-[#0B0B0D]">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">
           <h2 className="text-3xl lg:text-5xl font-bold mb-6">
-            Proteja seus próximos freelas
+            Proteja seus prÃ³ximos freelas
           </h2>
           <p className="text-gray-400 text-lg mb-8 max-w-2xl mx-auto">
             Registre acordos e tenha uma forma profissional de resolver conflitos.
@@ -661,7 +661,7 @@ export default function ModeloContratoFreelancerPage() {
                 <span className="text-xl font-semibold">PreJud</span>
               </div>
               <p className="text-sm text-gray-500">
-                Notificação extrajudicial com integridade digital garantida.
+                NotificaÃ§Ã£o extrajudicial com integridade digital garantida.
               </p>
             </div>
             
@@ -669,13 +669,13 @@ export default function ModeloContratoFreelancerPage() {
               <h4 className="font-semibold mb-4">Produto</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Funcionalidades</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Preços</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">PreÃ§os</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">API</a></li>
               </ul>
             </div>
             
             <div>
-              <h4 className="font-semibold mb-4">Jurídico</h4>
+              <h4 className="font-semibold mb-4">JurÃ­dico</h4>
               <ul className="space-y-2 text-sm text-gray-400">
                 <li><a href="#" className="hover:text-white transition-colors">Termos de Uso</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Privacidade</a></li>
@@ -694,7 +694,7 @@ export default function ModeloContratoFreelancerPage() {
           
           <div className="pt-8 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-sm text-gray-500">
-              © 2024 PreJud. Todos os direitos reservados.
+              Â© 2024 PreJud. Todos os direitos reservados.
             </p>
             <div className="flex gap-6 text-sm text-gray-500">
               <a href="#" className="hover:text-white transition-colors">Termos</a>

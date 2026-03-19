@@ -1,4 +1,4 @@
-﻿// C:\prejud-saas\frontend\src\app\page.tsx
+// C:\prejud-saas\frontend\src\app\page.tsx
 
 "use client";
 

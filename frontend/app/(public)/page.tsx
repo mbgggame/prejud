@@ -1,1 +1,1 @@
-﻿export default function Page() { return <div>(public)</div>; }
+export default function Page() { return <div>(public)</div>; }

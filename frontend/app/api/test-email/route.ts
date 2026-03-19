@@ -1,4 +1,4 @@
-﻿import { NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { sendAgreementInvitation } from '@/lib/resend';
 
 export async function POST() {
