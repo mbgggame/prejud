@@ -1,4 +1,6 @@
-﻿@import "tailwindcss";
+﻿@custom-variant dark (&:where(.dark, .dark *));
+
+@import "tailwindcss";
 
 @theme {
   --color-border: hsl(var(--border));
@@ -80,4 +82,75 @@
     background-color: var(--color-background);
     color: var(--color-foreground);
   }
+}
+
+
+/* Fix para texto no modo dark */
+.dark, .dark * {
+  color: hsl(var(--foreground));
+}
+
+
+/* ================================
+   Reputation Score Component
+================================ */
+
+.reputation-score {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reputation-score__header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.reputation-score__value {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.reputation-score__label {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.reputation-score__wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.reputation-score__scale {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+  border-radius: 999px;
+  height: 10px;
+  background: #e5e7eb;
+}
+
+.reputation-score__segment {
+  height: 100%;
+}
+
+.reputation-score__marker {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid #fff;
+  background: #111827;
+}
+
+.reputation-score__range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  color: #6b7280;
 }

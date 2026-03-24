@@ -1,0 +1,54 @@
+﻿BACKUP PREJUD SAAS - 20260324-1847
+============================
+
+ARQUIVOS ALTERADOS:
+
+1. app/(dashboard)/dashboard/formalizar-acordo/page.tsx
+   - Adicionados campos freelancerCity e freelancerState
+   - Formato de data DD/MM/AAAA
+   - Hash256 e timeline desde criação
+
+2. app/(dashboard)/dashboard/revisar-acordo/page.tsx
+   - Correção de limite de revisões (3 → 1)
+   - Log de debug para status
+
+3. app/p/[protocol]/page.tsx
+   - CPF/CNPJ das partes
+   - Formato data BR
+   - Timeline completa
+   - Botão gerar contrato com hash
+
+4. app/contrato/page.tsx
+   - Página de contrato com query string (?id=)
+   - Hash SHA-256
+   - Timeline do acordo
+
+5. app/contrato/[agreementId]/page.tsx
+   - Redirecionamento para query string
+
+6. app/api/public-agreement/respond/route.ts
+   - MAX_REVISIONS = 1
+   - Correção de encoding
+
+7. app/api/send-contract/route.ts
+   - API Route para envio de contrato
+   - Link com query string
+
+8. lib/resend.ts
+   - FROM_EMAIL = notificado@prejud.com
+   - Funções de envio de e-mail
+
+9. lib/contractEmail.ts (NOVO)
+   - Função sendContractEmail
+   - Template de e-mail com hash e timeline
+
+10. lib/contracts/map-agreement-to-contract.ts
+    - Mapeamento correto de CPF, cidade, estado
+
+11. services/contractSendService.ts
+    - Integração com API de envio
+    - Geração de hash e timeline
+
+STATUS: ✅ TODOS OS ARQUIVOS FUNCIONANDO
+BUILD: ✅ SUCESSO
+DATA: 24/03/2026 18:47

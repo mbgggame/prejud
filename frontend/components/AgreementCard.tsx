@@ -56,7 +56,7 @@ export function AgreementCard({ agreement, detailed = false }: AgreementCardProp
           <div>
             <p className="text-xs text-slate-500">Prazo</p>
             <p className="font-medium">
-              {formatDate(agreement.deadline)}
+              {agreement.deadline ? formatDate(agreement.deadline) : 'Sem prazo'}
             </p>
           </div>
         </div>

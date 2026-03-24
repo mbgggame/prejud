@@ -1,4 +1,4 @@
-// ==========================================
+﻿// ==========================================
 // MAQUINA DE ESTADOS DO ACORDO - PREJUD
 // ==========================================
 
@@ -276,7 +276,49 @@ export function getBlockedActions(status: AgreementStatus): string[] {
 }
 
 export function getStatusLabel(status: AgreementStatus): string {
-  return agreementStateMachine[status].statusLabel;
+  switch (status) {
+    case "draft":
+      return "Rascunho";
+
+    case "pending_client_confirmation":
+      return "Aguardando cliente";
+
+    case "confirmed":
+      return "Confirmado";
+
+    case "rejected":
+      return "Recusado";
+
+    case "contested":
+      return "Contestado";
+
+    case "in_adjustment":
+      return "Em revisão";
+
+    case "deadline_extension_pending":
+      return "Prorrogação pendente";
+
+    case "amendment_pending":
+      return "Aditivo pendente";
+
+    case "charge_open":
+      return "Cobrança pendente";
+
+    case "charge_contested":
+      return "Cobrança contestada";
+
+    case "notice_sent":
+      return "Notificação enviada";
+
+    case "in_dispute":
+      return "Em disputa";
+
+    case "closed":
+      return "Encerrado";
+
+    default:
+      return status;
+  }
 }
 
 export function getStatusColorClasses(status: AgreementStatus): string {

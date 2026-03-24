@@ -1,0 +1,513 @@
+﻿// C:\prejud-saas-new\frontend\app\(auth)\login\page.tsx
+
+"use client";
+
+import { useState, useEffect, FormEvent, ChangeEvent } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { 
+  Eye, 
+  EyeOff, 
+  ArrowLeft,
+  Mail, 
+  Lock, 
+  User,
+  Settings,
+  LayoutList,
+  LogOut,
+  ChevronDown,
+  Clock,
+  Sparkles,
+  Loader2,
+  AlertTriangle,
+  CheckCircle
+} from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
+import { auth } from '@/services/firebase';
+
+// ==========================================
+// COMPONENTES AUXILIARES (Mesmo padrão do Dashboard)
+// ==========================================
+
+function BrazilClock() {
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setTime(
+        now.toLocaleTimeString("pt-BR", {
+          timeZone: "America/Sao_Paulo",
+          hour: "2-digit",
+          minute: "2-digit",
+        })
+      );
+    };
+
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-600 shadow-sm dark:border-white/10 dark:bg-[#0F172A] dark:text-slate-200 dark:shadow-none">
+      <Clock size={12} className="text-slate-500 dark:text-slate-400" />
+      <span className="font-medium">{time}</span>
+      <span className="text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
+        BRT
+      </span>
+    </div>
+  );
+}
+
+// ==========================================
+// COMPONENTE PRINCIPAL
+// ==========================================
+
+export default function LoginPage() {
+  const [email, setEmail] = useState<string>('');
+  const [senha, setSenha] = useState<string>('');
+  const [showSenha, setShowSenha] = useState<boolean>(false);
+  const [manterConectado, setManterConectado] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false);
+  const [dark, setDark] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  
+  const router = useRouter();
+  const { login, user, logout } = useAuth();
+
+  const isLoggedIn = !!user;
+  const userName = user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || 'Usuário';
+  const userEmail = user?.email || '';
+
+  // Tema - mesmo padrão do dashboard
+  useEffect(() => {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.documentElement.classList.add("dark");
+      setDark(true);
+    } else {
+      document.documentElement.classList.remove("dark");
+      setDark(false);
+    }
+  }, []);
+
+  const toggleDark = () => {
+    if (dark) {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("theme", "light");
+      setDark(false);
+    } else {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("theme", "dark");
+      setDark(true);
+    }
+  };
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/");
+  };
+
+  const validate = (): string => {
+    if (!email.trim()) return "Informe seu e-mail.";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return "E-mail inválido.";
+    if (!senha) return "Informe sua senha.";
+    return "";
+  };
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+    e.preventDefault();
+    setError("");
+    
+    console.log("🚀 Iniciando login...");
+
+    const validationError = validate();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      console.log("🔑 Tentando login com:", email);
+      await login(email, senha);
+      console.log("✅ Login bem-sucedido!");
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 100);
+    } catch (err: unknown) {
+      console.error("❌ Erro no login:", err);
+      const errorCode = (err as { code?: string })?.code || "";
+      if (errorCode === "auth/user-not-found") setError("Usuário não encontrado.");
+      else if (errorCode === "auth/wrong-password") setError("Senha incorreta.");
+      else if (errorCode === "auth/invalid-email") setError("E-mail inválido.");
+      else if (errorCode === "auth/user-disabled") setError("Conta desativada.");
+      else if (errorCode === "auth/too-many-requests") setError("Muitas tentativas. Tente mais tarde.");
+      else if (errorCode === "auth/network-request-failed") setError("Falha de rede. Verifique o emulador.");
+      else setError("E-mail ou senha incorretos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async (): Promise<void> => {
+    setLoading(true);
+    setError("");
+    
+    try {
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(auth, provider);
+      console.log("✅ Login Google bem-sucedido!");
+      setTimeout(() => {
+        router.push('/dashboard');
+      }, 100);
+    } catch (err: unknown) {
+      console.error("❌ Erro no login Google:", err);
+      const errorCode = (err as { code?: string })?.code || "";
+      if (errorCode === "auth/popup-closed-by-user") setError("Login cancelado.");
+      else if (errorCode === "auth/account-exists-with-different-credential") setError("Conta já existe com outro método de login.");
+      else if (errorCode === "auth/network-request-failed") setError("Falha de rede. Verifique sua conexão.");
+      else setError("Erro ao fazer login com Google. Tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setEmail(e.target.value);
+  };
+
+  const handleSenhaChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setSenha(e.target.value);
+  };
+
+  const handleCheckboxChange = (e: ChangeEvent<HTMLInputElement>): void => {
+    setManterConectado(e.target.checked);
+  };
+
+  if (loading && !error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 dark:bg-[#0A0F1A]">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-10 w-10 animate-spin text-slate-600 dark:text-slate-300" />
+          <p className="text-sm text-slate-600 dark:text-slate-300">
+            Entrando...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 text-slate-900 dark:bg-[#0A0F1A] dark:text-slate-100">
+      {/* Header - EXATAMENTE igual ao Dashboard */}
+      <header className="fixed left-0 right-0 top-0 z-50 border-b border-slate-200 bg-white/95 backdrop-blur-xl dark:border-white/10 dark:bg-[#0A0F1A]/90">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex min-h-[76px] items-center justify-between gap-3 sm:min-h-[84px]">
+            <div className="min-w-0 flex items-center gap-3 sm:gap-4">
+              <Link href="/" className="group flex min-w-0 items-center gap-3">
+                <>
+                  <img
+                    src="/prejud-logo-1200x300 preto.svg"
+                    alt="PreJud"
+                    className="h-7 w-auto object-contain dark:hidden"
+                  />
+                  <img
+                    src="/prejud-logo-1200x300.svg"
+                    alt="PreJud"
+                    className="hidden h-7 w-auto object-contain dark:block"
+                  />
+                </>
+
+                <div className="hidden min-w-0 sm:block">
+                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-white">
+                    Acessar conta
+                  </p>
+                  <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                    Login de usuário
+                  </p>
+                </div>
+              </Link>
+            </div>
+
+            <div className="hidden lg:block">
+              <BrazilClock />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={toggleDark}
+                className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-[#0F172A] dark:text-slate-200 dark:hover:bg-white/5"
+              >
+                {dark ? "☀️" : "🌙"}
+              </button>
+
+              {isLoggedIn ? (
+                <div className="relative">
+                  <button
+                    onClick={() => setProfileOpen(!profileOpen)}
+                    className="flex items-center gap-2 rounded-2xl border border-slate-200 bg-white px-2.5 py-2 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 dark:border-white/10 dark:bg-[#0F172A] dark:shadow-none dark:hover:bg-white/5 sm:gap-3 sm:px-3"
+                  >
+                    <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 dark:bg-white/10">
+                      <User size={16} className="text-slate-700 dark:text-slate-200" />
+                    </div>
+
+                    <div className="hidden text-left sm:block">
+                      <p className="max-w-[140px] truncate text-sm font-semibold text-slate-900 dark:text-white">
+                        {userName}
+                      </p>
+                      <p className="max-w-[180px] truncate text-xs text-slate-500 dark:text-slate-400">
+                        {userEmail}
+                      </p>
+                    </div>
+
+                    <ChevronDown
+                      size={16}
+                      className={`text-slate-500 transition-transform dark:text-slate-400 ${
+                        profileOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+
+                  {profileOpen && (
+                    <div className="absolute right-0 mt-2 w-72 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0F172A]">
+                      <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 dark:border-white/10 dark:bg-white/5">
+                        <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                          {userName}
+                        </p>
+                        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                          {userEmail}
+                        </p>
+                      </div>
+
+                      <div className="py-2">
+                        <Link
+                          href="/dashboard"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
+                        >
+                          <LayoutList size={16} />
+                          Dashboard
+                        </Link>
+
+                        <Link
+                          href="/dashboard/configuracoes"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-white/5"
+                        >
+                          <Settings size={16} />
+                          Configurações
+                        </Link>
+
+                        <div className="my-2 border-t border-slate-100 dark:border-white/10" />
+
+                        <button
+                          onClick={handleLogout}
+                          className="flex w-full items-center gap-3 px-4 py-2.5 text-sm text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10"
+                        >
+                          <LogOut size={16} />
+                          Sair
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/registro"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-[#0F172A] dark:text-slate-200 dark:hover:bg-white/5"
+                >
+                  Criar conta
+                </Link>
+              )}
+            </div>
+          </div>
+
+          <div className="pb-3 lg:hidden">
+            <BrazilClock />
+          </div>
+        </div>
+      </header>
+
+      {/* Conteúdo principal */}
+      <main className="mx-auto max-w-7xl px-4 pb-8 pt-28 sm:px-6 sm:pt-32 lg:px-8 lg:pt-36">
+        {/* Botão Voltar - Padrão obrigatório do gabarito */}
+        <div className="mb-5">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-white/10 dark:bg-[#0F172A] dark:text-slate-200 dark:hover:bg-white/5"
+          >
+            <ArrowLeft size={16} />
+            Voltar
+          </Link>
+        </div>
+
+        {/* Bloco de abertura - Padrão Dashboard */}
+        <section className="relative overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0F172A] dark:shadow-none mb-6">
+          <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-white to-blue-50/60 dark:from-[#0F172A] dark:via-[#0B1220] dark:to-[#09111F]" />
+          <div className="relative p-5 sm:p-6 lg:p-8">
+            <div className="max-w-2xl">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300">
+                <Sparkles className="h-3.5 w-3.5" />
+                Bem-vindo de volta
+              </div>
+
+              <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-3xl lg:text-4xl">
+                Acesse sua conta no PreJud
+              </h1>
+
+              <p className="mt-3 max-w-xl text-sm leading-6 text-slate-600 dark:text-slate-300 sm:text-base">
+                Entre para gerenciar seus acordos, acompanhar notificações e 
+                manter suas relações profissionais protegidas.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* Seção principal - Formulário */}
+        <section className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-sm dark:border-white/10 dark:bg-[#0F172A] dark:shadow-none">
+          <div className="p-5 sm:p-6 lg:p-8">
+            <div className="mx-auto max-w-md">
+              {/* Botão Google */}
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                disabled={loading}
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 disabled:opacity-70 dark:border-white/10 dark:bg-[#0F172A] dark:text-slate-200 dark:hover:bg-white/5 flex items-center justify-center gap-3"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24">
+                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                </svg>
+                Entrar com Google
+              </button>
+
+              {/* Divisor */}
+              <div className="relative my-6">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-slate-200 dark:border-white/10"></div>
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="bg-white px-2 text-slate-500 dark:bg-[#0F172A] dark:text-slate-400">
+                    ou use seu e-mail
+                  </span>
+                </div>
+              </div>
+
+              {/* Formulário */}
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {error && (
+                  <div className={`rounded-xl p-4 text-sm ${
+                    error.includes("sucesso")
+                      ? "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-300"
+                      : "border border-red-200 bg-red-50 text-red-700 dark:border-red-500/20 dark:bg-red-500/10 dark:text-red-300"
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      {error.includes("sucesso") ? (
+                        <CheckCircle className="h-4 w-4" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4" />
+                      )}
+                      {error}
+                    </div>
+                  </div>
+                )}
+
+                {/* Campo Email */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    E-mail
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={handleEmailChange}
+                      className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-[#111827] dark:text-white dark:placeholder-slate-500"
+                      placeholder="seu@email.com"
+                      required
+                    />
+                  </div>
+                </div>
+
+                {/* Campo Senha */}
+                <div>
+                  <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    Senha
+                  </label>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" />
+                    <input
+                      type={showSenha ? 'text' : 'password'}
+                      value={senha}
+                      onChange={handleSenhaChange}
+                      className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-12 text-sm text-slate-900 placeholder-slate-400 transition focus:border-blue-500 focus:outline-none dark:border-white/10 dark:bg-[#111827] dark:text-white dark:placeholder-slate-500"
+                      placeholder="Sua senha"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowSenha(!showSenha)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
+                    >
+                      {showSenha ? <EyeOff size={20} /> : <Eye size={20} />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Opções extras */}
+                <div className="flex items-center justify-between">
+                  <label className="flex cursor-pointer items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={manterConectado}
+                      onChange={handleCheckboxChange}
+                      className="h-4 w-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 dark:border-white/20 dark:bg-[#111827]"
+                    />
+                    <span className="text-sm text-slate-600 dark:text-slate-300">
+                      Manter conectado
+                    </span>
+                  </label>
+
+                  <Link 
+                    href="/recuperar-senha" 
+                    className="text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    Esqueci minha senha
+                  </Link>
+                </div>
+
+                {/* Botão Submit */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full rounded-xl bg-slate-900 py-3.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-70 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+                >
+                  {loading ? 'Entrando...' : 'Entrar'}
+                </button>
+              </form>
+
+              {/* Link Registro */}
+              <div className="mt-6 text-center">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Não tem conta?{' '}
+                  <Link 
+                    href="/registro" 
+                    className="font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    Criar conta
+                  </Link>
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+}

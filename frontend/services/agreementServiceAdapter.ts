@@ -19,9 +19,8 @@ import {
   getNotices,
   approveAmendment,
   payCharge,
-  getAgreementsByUser,
+  getAgreementsByFreelancer,
   getAgreementStats,
-  processPublicAgreementConfirmation
 } from "./firebaseAgreementService";
 
 import type {
@@ -35,7 +34,7 @@ import type {
 
 /**
  * Busca acordo por ID
- * CompatÃ­vel com: hooks/useAgreement.ts
+ * Compatível com: hooks/useAgreement.ts
  */
 export async function fetchAgreement(id: string): Promise<Agreement | null> {
   return getAgreementById(id);
@@ -43,7 +42,7 @@ export async function fetchAgreement(id: string): Promise<Agreement | null> {
 
 /**
  * Busca eventos da timeline
- * CompatÃ­vel com: hooks/useAgreement.ts
+ * Compatível com: hooks/useAgreement.ts
  */
 export async function fetchAgreementEvents(agreementId: string): Promise<TimelineEvent[]> {
   return getAgreementEvents(agreementId);
@@ -51,7 +50,7 @@ export async function fetchAgreementEvents(agreementId: string): Promise<Timelin
 
 /**
  * Cria acordo
- * CompatÃ­vel com fluxo de formalizaÃ§Ã£o
+ * Compatível com fluxo de formalização
  */
 export async function submitAgreement(
   data: Omit<Agreement, "id" | "createdAt" | "updatedAt" | "timeline" | "protocol">
@@ -60,8 +59,8 @@ export async function submitAgreement(
 }
 
 /**
- * Solicita prorrogaÃ§Ã£o de prazo
- * CompatÃ­vel com: hooks/useAgreement.ts
+ * Solicita prorrogação de prazo
+ * Compatível com: hooks/useAgreement.ts
  */
 export async function submitDeadlineExtension(
   data: Omit<DeadlineExtension, "id" | "createdAt" | "updatedAt" | "status">
@@ -71,7 +70,7 @@ export async function submitDeadlineExtension(
 
 /**
  * Cria termo aditivo
- * CompatÃ­vel com: hooks/useAgreement.ts
+ * Compatível com: hooks/useAgreement.ts
  */
 export async function submitAmendment(
   data: Omit<Amendment, "id" | "createdAt" | "acceptedAt" | "status">
@@ -80,8 +79,8 @@ export async function submitAmendment(
 }
 
 /**
- * Cria cobranÃ§a
- * CompatÃ­vel com: hooks/useAgreement.ts
+ * Cria cobrança
+ * Compatível com: hooks/useAgreement.ts
  */
 export async function submitCharge(
   data: Omit<Charge, "id" | "createdAt" | "paidAt" | "status">
@@ -90,8 +89,8 @@ export async function submitCharge(
 }
 
 /**
- * Envia notificaÃ§Ã£o
- * CompatÃ­vel com: hooks/useAgreement.ts
+ * Envia notificação
+ * Compatível com: hooks/useAgreement.ts
  */
 export async function submitNotice(
   data: Omit<Notice, "id" | "respondedAt" | "sentAt" | "readAt" | "response">
@@ -116,9 +115,8 @@ export {
   getNotices,
   approveAmendment,
   payCharge,
-  getAgreementsByUser,
+  getAgreementsByFreelancer,
   getAgreementStats,
-  processPublicAgreementConfirmation,
 };
 
 export type {
@@ -152,10 +150,8 @@ const agreementService = {
   getNotices,
   approveAmendment,
   payCharge,
-  getAgreementsByUser,
+  getAgreementsByFreelancer,
   getAgreementStats,
-  processPublicAgreementConfirmation,
 };
 
 export default agreementService;
-

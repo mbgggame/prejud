@@ -1,6 +1,11 @@
 ﻿"use client";
 
-import { TimelineProps } from "@/types/agreement";
+import { TimelineEvent } from "@/types/agreement";
+
+interface TimelineProps {
+  events: TimelineEvent[];
+  className?: string;
+}
 import { TimelineEventItem } from "./TimelineEventItem";
 import { History } from "lucide-react";
 

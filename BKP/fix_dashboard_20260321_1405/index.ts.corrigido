@@ -1,0 +1,189 @@
+﻿import { setGlobalOptions } from "firebase-functions/v2";
+import { onCall } from "firebase-functions/v2/https";
+import * as admin from "firebase-admin";
+
+admin.initializeApp();
+const db = admin.firestore();
+
+setGlobalOptions({ maxInstances: 10 });
+
+/**
+ * CLOUD FUNCTION: getFreelancerDashboard
+ * 
+ * CORREÇÃO: Adicionado fallback para quando o índice composto não existe
+ * e logs detalhados para debug.
+ */
+export const getFreelancerDashboard = onCall(async (request) => {
+  const { freelancerId } = request.data;
+
+  console.log(`[DEBUG] Iniciando getFreelancerDashboard para freelancerId: ${freelancerId}`);
+
+  if (!freelancerId) {
+    console.error("[ERROR] freelancerId não fornecido");
+    throw new Error("freelancerId é obrigatório");
+  }
+
+  try {
+    // ============================
+    // BUSCAR ACORDOS (COM FALLBACK)
+    // ============================
+    let agreements: any[] = [];
+    
+    try {
+      // TENTATIVA 1: Query com ordenação (requer índice)
+      console.log("[DEBUG] Tentando buscar acordos com ordenação...");
+      const agreementsSnap = await db
+        .collection("agreements")
+        .where("freelancerId", "==", freelancerId)
+        .orderBy("createdAt", "desc")
+        .get();
+      
+      agreements = agreementsSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      
+      console.log(`[DEBUG] Acordos encontrados com ordenação: ${agreements.length}`);
+      
+    } catch (indexError: any) {
+      // FALLBACK: Se falhar por falta de índice, busca sem ordenação
+      console.warn("[WARN] Falha na query com ordenação, usando fallback:", indexError.message);
+      
+      console.log("[DEBUG] Tentando buscar acordos sem ordenação...");
+      const agreementsSnap = await db
+        .collection("agreements")
+        .where("freelancerId", "==", freelancerId)
+        .get();
+      
+      agreements = agreementsSnap.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      
+      // Ordenar manualmente no servidor
+      agreements.sort((a, b) => {
+        const dateA = a.createdAt?.toMillis ? a.createdAt.toMillis() : new Date(a.createdAt).getTime();
+        const dateB = b.createdAt?.toMillis ? b.createdAt.toMillis() : new Date(b.createdAt).getTime();
+        return dateB - dateA; // Descendente
+      });
+      
+      console.log(`[DEBUG] Acordos encontrados com fallback: ${agreements.length}`);
+    }
+
+    const agreementIds = agreements.map((a: any) => a.id);
+    console.log(`[DEBUG] IDs dos acordos: ${agreementIds.join(', ')}`);
+
+    // ============================
+    // BUSCAR COBRANÇAS
+    // ============================
+    let charges: any[] = [];
+
+    if (agreementIds.length > 0) {
+      try {
+        console.log("[DEBUG] Buscando cobranças...");
+        const chargesSnap = await db
+          .collection("charges")
+          .where("agreementId", "in", agreementIds.slice(0, 10))
+          .get();
+
+        charges = chargesSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        
+        console.log(`[DEBUG] Cobranças encontradas: ${charges.length}`);
+      } catch (chargeError: any) {
+        console.error("[ERROR] Falha ao buscar cobranças:", chargeError.message);
+        charges = [];
+      }
+    }
+
+    // ============================
+    // BUSCAR NOTIFICAÇÕES
+    // ============================
+    let notices: any[] = [];
+
+    if (agreementIds.length > 0) {
+      try {
+        console.log("[DEBUG] Buscando notificações...");
+        const noticesSnap = await db
+          .collection("notices")
+          .where("agreementId", "in", agreementIds.slice(0, 10))
+          .get();
+
+        notices = noticesSnap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        
+        console.log(`[DEBUG] Notificações encontradas: ${notices.length}`);
+      } catch (noticeError: any) {
+        console.error("[ERROR] Falha ao buscar notificações:", noticeError.message);
+        notices = [];
+      }
+    }
+
+    // ============================
+    // CALCULAR STATS
+    // ============================
+    const stats = {
+      rascunhos: agreements.filter((a: any) => a.status === "draft").length,
+      aguardandoCliente: agreements.filter(
+        (a: any) => a.status === "pending_client_confirmation"
+      ).length,
+      ativos: agreements.filter((a: any) =>
+        ["confirmed", "charge_open"].includes(a.status)
+      ).length,
+      cobrancasPendentes: charges.filter(
+        (c: any) => c.status === "pending"
+      ).length,
+    };
+
+    console.log("[DEBUG] Stats calculados:", JSON.stringify(stats));
+
+    // ============================
+    // PRIORIDADE
+    // ============================
+    const prioridade =
+      stats.aguardandoCliente > 0
+        ? "Você tem acordos aguardando cliente"
+        : stats.cobrancasPendentes > 0
+        ? "Você tem cobranças pendentes"
+        : "Tudo sob controle";
+
+    // ============================
+    // HISTÓRICO
+    // ============================
+    const historico = notices
+      .slice(0, 5)
+      .map((n: any) => ({
+        acao: n.title,
+        data: n.sentAt,
+      }));
+
+    const response = {
+      stats: {
+        ...stats,
+        totalAgreements: agreements.length,
+        activeAgreements: stats.ativos,
+        pendingConfirmation: stats.aguardandoCliente,
+        inDispute: agreements.filter((a: any) => ['in_dispute','contested','charge_contested'].includes(a.status)).length,
+        completed: agreements.filter((a: any) => a.status === 'closed').length,
+        totalValue: agreements.reduce((sum: number, a: any) => sum + (Number(a.value) || 0), 0),
+        pendingValue: charges.filter((c: any) => c.status === 'pending').reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0),
+        paidValue: charges.filter((c: any) => c.status === 'paid').reduce((sum: number, c: any) => sum + (Number(c.amount) || 0), 0)
+      },
+      agreements,
+      charges,
+      historico,
+      prioridade,
+    };
+
+    console.log(`[DEBUG] Resposta preparada com sucesso. Total de acordos: ${agreements.length}`);
+    return response;
+
+  } catch (error: any) {
+    console.error("[ERROR] Erro fatal na Cloud Function:", error);
+    throw new Error(`Falha ao carregar dashboard: ${error.message}`);
+  }
+});
